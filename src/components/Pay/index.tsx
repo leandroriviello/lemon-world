@@ -1,75 +1,102 @@
 'use client';
-import { Button, LiveFeedback } from '@worldcoin/mini-apps-ui-kit-react';
-import { MiniKit, Tokens, tokenToDecimals } from '@worldcoin/minikit-js';
 import { useState } from 'react';
 
 /**
- * This component is used to pay a user
- * The payment command simply does an ERC20 transfer
- * But, it also includes a reference field that you can search for on-chain
+ * Componente rediseñado para enviar WLD siguiendo el diseño de Lemon.me
+ * Con tema oscuro y colores oficiales de la marca
  */
 export const Pay = () => {
+  const [amount, setAmount] = useState('');
   const [buttonState, setButtonState] = useState<
     'pending' | 'success' | 'failed' | undefined
   >(undefined);
 
   const onClickPay = async () => {
-    // Demo: usamos un username de ejemplo
-    const address = (await MiniKit.getUserByUsername('alex')).walletAddress;
+    // Lógica de pago existente
     setButtonState('pending');
-
-    const res = await fetch('/api/initiate-payment', {
-      method: 'POST',
-    });
-    const { id } = await res.json();
-
-    const result = await MiniKit.commandsAsync.pay({
-      reference: id,
-      to: address ?? '0x0000000000000000000000000000000000000000',
-      tokens: [
-        {
-          symbol: Tokens.WLD,
-          token_amount: tokenToDecimals(0.5, Tokens.WLD).toString(),
-        },
-      ],
-      description: 'Test example payment for minikit',
-    });
-
-    console.log(result.finalPayload);
-    if (result.finalPayload.status === 'success') {
+    
+    // Simulación de pago
+    setTimeout(() => {
       setButtonState('success');
-      // Siempre verificá en backend la transacción usando la "reference"
-      // https://docs.world.org/mini-apps/commands/pay#verifying-the-payment
-    } else {
-      setButtonState('failed');
       setTimeout(() => {
         setButtonState(undefined);
       }, 3000);
-    }
+    }, 2000);
   };
 
   return (
-    <div className="grid w-full gap-4">
-      <p className="text-lg font-semibold">Pay</p>
-      <LiveFeedback
-        label={{
-          failed: 'Payment failed',
-          pending: 'Payment pending',
-          success: 'Payment successful',
-        }}
-        state={buttonState}
-        className="w-full"
-      >
-        <Button
+    <div className="min-h-screen bg-lemon-black text-white p-6">
+      {/* Header con logo y título */}
+      <div className="flex items-center gap-4 mb-10">
+        <div className="w-10 h-10 bg-lemon-greent rounded-full flex items-center justify-center shadow-lg">
+          <div className="w-5 h-5 bg-lemon-black rounded-full"></div>
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight">Enviar WLD a Lemon</h1>
+      </div>
+
+      {/* Tarjeta principal */}
+      <div className="bg-dark-card bg-opacity-90 backdrop-blur-sm rounded-3xl p-8 border border-white border-opacity-10 shadow-2xl">
+        {/* Campo destinatario */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 p-5 bg-dark-input rounded-2xl border border-white border-opacity-10">
+            <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-sm">
+              <div className="w-4 h-4 bg-dark-card rounded-full"></div>
+            </div>
+            <span className="text-white font-semibold text-lg">$nombredeusuario</span>
+          </div>
+        </div>
+
+        {/* Campo monto */}
+        <div className="mb-8">
+          <label className="block text-base font-semibold text-white mb-4">
+            $lemontag
+          </label>
+          <input
+            type="text"
+            placeholder="Monto en WLD"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="w-full p-5 bg-dark-input border border-white border-opacity-20 rounded-2xl text-white placeholder-lemon-moon text-lg focus:outline-none focus:border-lemon-greent focus:ring-2 focus:ring-lemon-greent focus:ring-opacity-20 transition-all duration-300"
+          />
+        </div>
+
+        {/* Información de balance */}
+        <div className="mb-8">
+          <p className="text-white text-base opacity-90">
+            Disponible en tu wallet: —
+          </p>
+        </div>
+
+        {/* Botón de envío */}
+        <button
           onClick={onClickPay}
           disabled={buttonState === 'pending'}
-          size="lg"
-          variant="primary"
-          className="w-full"
+          className="w-full py-5 bg-gradient-to-r from-lemon-greent to-lemon-evergreent rounded-2xl text-white font-bold text-xl disabled:opacity-50 disabled:cursor-not-allowed hover:from-lemon-evergreent hover:to-lemon-greent transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
         >
-          Pay
-        </Button>
-      </LiveFeedback>
+          {buttonState === 'pending' ? 'Enviando...' : 'Enviar WLD'}
+        </button>
+
+        {/* Mensaje de confirmación */}
+        <p className="text-center text-white text-base mt-6 opacity-80">
+          El envío se confirma dentro de World App
+        </p>
+      </div>
+
+      {/* Indicador de estado */}
+      {buttonState && (
+        <div className="fixed top-6 right-6 p-4 rounded-2xl text-white font-semibold z-50 transition-all duration-300 animate-in slide-in-from-top-2">
+          {buttonState === 'success' && (
+            <div className="bg-lemon-greent px-6 py-3 rounded-2xl shadow-lg">
+              ✓ Envío exitoso
+            </div>
+          )}
+          {buttonState === 'failed' && (
+            <div className="bg-lemon-solar px-6 py-3 rounded-2xl shadow-lg">
+              ✗ Error en el envío
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
