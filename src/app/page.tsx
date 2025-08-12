@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { MiniKit, Tokens, tokenToDecimals } from "@worldcoin/minikit-js";
 
-// 🔹 Componentes generados por v0 (si tu alias @ no funciona, cambia a import relativo ../components/lemon/...)
+// Si tu alias @ no funciona, cambia a imports relativos ../components/...
 import TagInput from "@/components/lemon/TagInput";
 import AmountInput from "@/components/lemon/AmountInput";
 import PrimaryButton from "@/components/lemon/PrimaryButton";
@@ -14,6 +14,17 @@ import { useToast } from "@/components/lemon/useToast";
 
 type ButtonState = "resolviendo" | "pagando" | "verificando" | "success" | undefined;
 
+type PayFinalPayload = {
+  status: "success" | "failed" | string;
+  reference?: string;
+  txHash?: string;
+  chainId?: string;
+};
+
+type PayResult = {
+  finalPayload: PayFinalPayload;
+};
+
 export default function Page() {
   const [tag, setTag] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
@@ -21,12 +32,12 @@ export default function Page() {
 
   const { toasts, showError, showSuccess, removeToast } = useToast();
 
-  const onSubmit = async () => {
+  const onSubmit = async (): Promise<void> => {
     try {
       const rawTag = tag.trim().replace(/^@/, "");
       const num = Number(amount);
 
-      if (!rawTag || isNaN(num) || num <= 0) {
+      if (!rawTag || Number.isNaN(num) || num <= 0) {
         showError("Revisa el lemontag y el monto");
         return;
       }
@@ -71,12 +82,12 @@ export default function Page() {
         description: `Envío WLD a @${rawTag}`,
       };
 
-      let result: any;
+      let result: PayResult;
       try {
         if (isMock) throw new Error("force-mock");
-        result = await MiniKit.commandsAsync.pay(payload);
-      } catch (e: any) {
-        const msg = String(e?.message || e);
+        result = (await MiniKit.commandsAsync.pay(payload)) as PayResult;
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
         if (isMock || msg.includes("unavailable") || msg.includes("not available")) {
           // Fallback local/preview
           result = {
@@ -101,7 +112,7 @@ export default function Page() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ finalPayload }),
       });
-      const conf = await r3.json();
+      const conf = (await r3.json()) as { success?: boolean };
 
       if (conf?.success) {
         setBtnState("success");
@@ -110,18 +121,20 @@ export default function Page() {
         showError("No pudimos confirmar la transacción");
         setBtnState(undefined);
       }
-    } catch (err: any) {
-      if (String(err?.message || "").toLowerCase().includes("cancel")) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.toLowerCase().includes("cancel")) {
         showError("Pago cancelado");
       } else {
-        showError("Algo salió mal");
         console.error(err);
+        showError("Algo salió mal");
       }
       setBtnState(undefined);
     }
   };
 
-  const disabled = btnState === "resolviendo" || btnState === "pagando" || btnState === "verificando";
+  const disabled =
+    btnState === "resolviendo" || btnState === "pagando" || btnState === "verificando";
 
   return (
     <main className="min-h-dvh text-white grid place-items-start p-6">
@@ -146,7 +159,17 @@ export default function Page() {
           El envío se confirma dentro de World App
         </p>
 
-        <StatusStrip state={btnState} />
+        <StatusStrip
+          status={
+            btnState === "resolviendo"
+              ? "Resolviendo…"
+              : btnState === "pagando"
+              ? "Pagando…"
+              : btnState === "verificando"
+              ? "Verificando…"
+              : undefined
+          }
+        />
       </div>
 
       <Toast toasts={toasts} removeToast={removeToast} />
