@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { MiniKit } from "@worldcoin/minikit-js";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -16,7 +17,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        {children}
+        <SpeedInsights />
+      </body>
     </html>
   );
 }
