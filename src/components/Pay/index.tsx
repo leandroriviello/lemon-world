@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { MiniKit, Tokens, tokenToDecimals } from "@worldcoin/minikit-js";
 import Toast from "@/components/lemon/Toast";
 import { useToast } from "@/components/lemon/useToast";
+import { LemonIcon } from './LemonIcon';
 
 type ButtonState = "resolviendo" | "pagando" | "verificando" | "success" | undefined;
 
@@ -133,9 +134,7 @@ export const Pay = () => {
       <div className="w-full max-w-md mx-auto">
         {/* Header con logo y título */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-8 h-8 bg-[#00F068] rounded-full flex items-center justify-center shadow-glow">
-            <div className="w-4 h-4 bg-black rounded-full"></div>
-          </div>
+          <LemonIcon className="w-8 h-8" />
           <h1 className="text-xl font-bold text-white font-sans">Enviar WLD a Lemon</h1>
         </div>
 
@@ -148,7 +147,7 @@ export const Pay = () => {
             </label>
             <input
               type="text"
-              placeholder="@usuarioLemon"
+              placeholder="$usuariodelemon"
               value={tag}
               onChange={(e) => setTag(e.target.value)}
               className="glassmorphism-input w-full p-4 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-[#00F068] focus:ring-2 focus:ring-[#00F068] focus:ring-opacity-20 transition-smooth"
@@ -180,7 +179,7 @@ export const Pay = () => {
           <button
             onClick={onSubmit}
             disabled={disabled}
-            className="w-full py-4 bg-gradient-to-r from-[#00F068] to-[#00A849] rounded-2xl text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:from-[#00A849] hover:to-[#00F068] transition-smooth transform hover:scale-[1.02] active:scale-[0.98] shadow-glow shadow-glow-hover"
+            className="w-full py-4 bg-gradient-to-r from-[#00F068] to-[#00A849] rounded-2xl text-black font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:from-[#00A849] hover:to-[#00F068] transition-smooth transform hover:scale-[1.02] active:scale-[0.98] shadow-glow shadow-glow-hover"
           >
             {btnState === "resolviendo" ? "Resolviendo..." : 
              btnState === "pagando" ? "Pagando..." : 
