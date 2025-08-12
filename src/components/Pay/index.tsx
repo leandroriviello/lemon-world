@@ -14,7 +14,7 @@ export const Pay = () => {
   >(undefined);
 
   const onClickPay = async () => {
-    // Lets use Alex's username to pay!
+    // Demo: usamos un username de ejemplo
     const address = (await MiniKit.getUserByUsername('alex')).walletAddress;
     setButtonState('pending');
 
@@ -31,10 +31,6 @@ export const Pay = () => {
           symbol: Tokens.WLD,
           token_amount: tokenToDecimals(0.5, Tokens.WLD).toString(),
         },
-        {
-          symbol: Tokens.USDCE,
-          token_amount: tokenToDecimals(0.1, Tokens.USDCE).toString(),
-        },
       ],
       description: 'Test example payment for minikit',
     });
@@ -42,9 +38,8 @@ export const Pay = () => {
     console.log(result.finalPayload);
     if (result.finalPayload.status === 'success') {
       setButtonState('success');
-      // It's important to actually check the transaction result on-chain
-      // You should confirm the reference id matches for security
-      // Read more here: https://docs.world.org/mini-apps/commands/pay#verifying-the-payment
+      // Siempre verificá en backend la transacción usando la "reference"
+      // https://docs.world.org/mini-apps/commands/pay#verifying-the-payment
     } else {
       setButtonState('failed');
       setTimeout(() => {
