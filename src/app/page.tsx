@@ -160,15 +160,17 @@ export default function Page() {
         </p>
 
         <StatusStrip
-          status={
-            btnState === "resolviendo"
-              ? "Resolviendo…"
-              : btnState === "pagando"
-              ? "Pagando…"
-              : btnState === "verificando"
-              ? "Verificando…"
-              : undefined
-          }
+     status={
+    btnState === "resolviendo"
+      ? "resolving"
+      : btnState === "pagando"
+      ? "paying"
+      : btnState === "verificando"
+      ? "verifying"
+      : btnState === "success"
+      ? "success"
+      : "idle"
+  }
         />
       </div>
 
