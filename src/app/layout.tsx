@@ -8,7 +8,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     const appId = process.env.NEXT_PUBLIC_APP_ID;
     if (appId) {
-      MiniKit.install({ app_id: appId });
+      // En esta versión del SDK, install() recibe el APP_ID como string
+      MiniKit.install(appId);
     }
   }, []);
 
