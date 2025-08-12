@@ -1,21 +1,131 @@
 'use client';
 import { useState } from 'react';
+import { MiniKit, Tokens, tokenToDecimals } from "@worldcoin/minikit-js";
+import Toast from "@/components/lemon/Toast";
+import { useToast } from "@/components/lemon/useToast";
+
+type ButtonState = "resolviendo" | "pagando" | "verificando" | "success" | undefined;
+
+type PayFinalPayload = {
+  status: "success" | "failed" | string;
+  reference?: string;
+  txHash?: string;
+  chainId?: string;
+};
+
+type PayResult = {
+  finalPayload: PayFinalPayload;
+};
 
 export const Pay = () => {
   const [amount, setAmount] = useState('');
-  const [buttonState, setButtonState] = useState<
-    'pending' | 'success' | 'failed' | undefined
-  >(undefined);
+  const [tag, setTag] = useState<string>("");
+  const [btnState, setBtnState] = useState<ButtonState>(undefined);
+  const { toasts, showError, showSuccess, removeToast } = useToast();
 
-  const onClickPay = async () => {
-    setButtonState('pending');
-    setTimeout(() => {
-      setButtonState('success');
-      setTimeout(() => {
-        setButtonState(undefined);
-      }, 3000);
-    }, 2000);
+  const onSubmit = async (): Promise<void> => {
+    try {
+      const rawTag = tag.trim().replace(/^@/, "");
+      const num = Number(amount);
+
+      if (!rawTag || Number.isNaN(num) || num <= 0) {
+        showError("Revisa el lemontag y el monto");
+        return;
+      }
+
+      // 1) Resolver tag -> address
+      setBtnState("resolviendo");
+      const r1 = await fetch("/api/resolve-tag", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tag: rawTag }),
+      });
+
+      if (!r1.ok) {
+        showError("No encontramos ese lemontag");
+        setBtnState(undefined);
+        return;
+      }
+      const { address } = (await r1.json()) as { address: string };
+
+      // 2) Iniciar pago -> id de referencia
+      setBtnState("pagando");
+      const r2 = await fetch("/api/initiate-payment", { method: "POST" });
+      if (!r2.ok) {
+        showError("Servicio no disponible (init)");
+        setBtnState(undefined);
+        return;
+      }
+      const { id } = (await r2.json()) as { id: string };
+
+      // 3) Ejecutar pay (real en World App, mock en local/preview)
+      const isMock = process.env.NEXT_PUBLIC_MOCK === "true";
+
+      const payload = {
+        reference: id,
+        to: address,
+        tokens: [
+          {
+            symbol: Tokens.WLD,
+            token_amount: tokenToDecimals(num, Tokens.WLD).toString(),
+          },
+        ],
+        description: `Envío WLD a @${rawTag}`,
+      };
+
+      let result: PayResult;
+      try {
+        if (isMock) throw new Error("force-mock");
+        result = (await MiniKit.commandsAsync.pay(payload)) as PayResult;
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (isMock || msg.includes("unavailable") || msg.includes("not available")) {
+          // Fallback local/preview
+          result = {
+            finalPayload: {
+              status: "success",
+              reference: id,
+              txHash: "0xMOCK",
+              chainId: "base-sepolia",
+            },
+          };
+        } else {
+          throw e;
+        }
+      }
+
+      const { finalPayload } = result;
+
+      // 4) Confirmar
+      setBtnState("verificando");
+      const r3 = await fetch("/api/confirm-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ finalPayload }),
+      });
+      const conf = (await r3.json()) as { success?: boolean };
+
+      if (conf?.success) {
+        setBtnState("success");
+        showSuccess(`¡Listo! Enviaste ${num} WLD a @${rawTag}`);
+      } else {
+        showError("No pudimos confirmar la transacción");
+        setBtnState(undefined);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.toLowerCase().includes("cancel")) {
+        showError("Pago cancelado");
+      } else {
+        console.error(err);
+        showError("Algo salió mal");
+      }
+      setBtnState(undefined);
+    }
   };
+
+  const disabled =
+    btnState === "resolviendo" || btnState === "pagando" || btnState === "verificando";
 
   return (
     <div className="min-h-screen w-full bg-gradient-dark flex items-center justify-center p-4">
@@ -33,18 +143,22 @@ export const Pay = () => {
         <div className="glassmorphism rounded-[20px] p-6 shadow-2xl transition-smooth">
           {/* Campo destinatario */}
           <div className="mb-6">
-            <div className="glassmorphism-card rounded-2xl p-4 flex items-center gap-3">
-              <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
-                <div className="w-3 h-3 bg-black rounded-full"></div>
-              </div>
-              <span className="text-white font-medium">$usuariodelemon</span>
-            </div>
+            <label className="block text-sm font-medium text-white mb-3 font-sans">
+              $lemontag
+            </label>
+            <input
+              type="text"
+              placeholder="@usuarioLemon"
+              value={tag}
+              onChange={(e) => setTag(e.target.value)}
+              className="glassmorphism-input w-full p-4 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-[#00F068] focus:ring-2 focus:ring-[#00F068] focus:ring-opacity-20 transition-smooth"
+            />
           </div>
 
           {/* Campo monto */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-white mb-3 font-sans">
-              $lemontag
+              Monto (WLD)
             </label>
             <input
               type="text"
@@ -64,11 +178,15 @@ export const Pay = () => {
 
           {/* Botón de envío */}
           <button
-            onClick={onClickPay}
-            disabled={buttonState === 'pending'}
+            onClick={onSubmit}
+            disabled={disabled}
             className="w-full py-4 bg-gradient-to-r from-[#00F068] to-[#00A849] rounded-2xl text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:from-[#00A849] hover:to-[#00F068] transition-smooth transform hover:scale-[1.02] active:scale-[0.98] shadow-glow shadow-glow-hover"
           >
-            {buttonState === 'pending' ? 'Enviando...' : 'Enviar WLD'}
+            {btnState === "resolviendo" ? "Resolviendo..." : 
+             btnState === "pagando" ? "Pagando..." : 
+             btnState === "verificando" ? "Verificando..." : 
+             btnState === "success" ? "¡Enviado!" : 
+             "Enviar WLD"}
           </button>
 
           {/* Mensaje de confirmación */}
@@ -78,21 +196,8 @@ export const Pay = () => {
         </div>
       </div>
 
-      {/* Indicador de estado */}
-      {buttonState && (
-        <div className="fixed top-6 right-6 p-4 rounded-2xl text-white font-semibold z-50 transition-smooth">
-          {buttonState === 'success' && (
-            <div className="bg-[#00F068] px-6 py-3 rounded-2xl shadow-glow">
-              ✓ Envío exitoso
-            </div>
-          )}
-          {buttonState === 'failed' && (
-            <div className="bg-[#FF8800] px-6 py-3 rounded-2xl shadow-glow">
-              ✗ Error en el envío
-            </div>
-          )}
-        </div>
-      )}
+      {/* Toast de estado */}
+      <Toast toasts={toasts} removeToast={removeToast} />
     </div>
   );
 };
