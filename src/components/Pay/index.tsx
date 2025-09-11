@@ -6,7 +6,7 @@ import Toast from "@/components/lemon/Toast";
 import { useToast } from "@/components/lemon/useToast";
 import { LemonIcon } from './LemonIcon';
 
-type ButtonState = "resolviendo" | "pagando" | "verificando" | "success" | undefined;
+type ButtonState = "pagando" | "verificando" | "success" | undefined;
 
 type PayFinalPayload = {
   status: "success" | "failed" | string;
@@ -21,36 +21,24 @@ type PayResult = {
 
 export const Pay = () => {
   const [amount, setAmount] = useState('');
-  const [tag, setTag] = useState<string>("");
+  const [address, setAddress] = useState<string>("");
   const [btnState, setBtnState] = useState<ButtonState>(undefined);
+  const [showHelp, setShowHelp] = useState(false);
   const { toasts, showError, showSuccess, removeToast } = useToast();
 
   const onSubmit = async (): Promise<void> => {
     try {
-      const rawTag = tag.trim().replace(/^@/, "");
+      const addr = address.trim();
       const num = Number(amount);
 
-      if (!rawTag || Number.isNaN(num) || num <= 0) {
-        showError("Revisa el lemontag y el monto");
+      // Validación mínima de dirección EVM (0x + 40 hex)
+      const isValidEvm = /^0x[a-fA-F0-9]{40}$/.test(addr);
+      if (!isValidEvm || Number.isNaN(num) || num <= 0) {
+        showError("Revisa la dirección de billetera y el monto");
         return;
       }
 
-      // 1) Resolver tag -> address
-      setBtnState("resolviendo");
-      const r1 = await fetch("/api/resolve-tag", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tag: rawTag }),
-      });
-
-      if (!r1.ok) {
-        showError("No encontramos ese lemontag");
-        setBtnState(undefined);
-        return;
-      }
-      const { address } = (await r1.json()) as { address: string };
-
-      // 2) Iniciar pago -> id de referencia
+      // 1) Iniciar pago -> id de referencia
       setBtnState("pagando");
       const r2 = await fetch("/api/initiate-payment", { method: "POST" });
       if (!r2.ok) {
@@ -60,19 +48,19 @@ export const Pay = () => {
       }
       const { id } = (await r2.json()) as { id: string };
 
-      // 3) Ejecutar pay (real en World App, mock en local/preview)
+      // 2) Ejecutar pay (real en World App, mock en local/preview)
       const isMock = process.env.NEXT_PUBLIC_MOCK === "true";
 
       const payload = {
         reference: id,
-        to: address,
+        to: addr,
         tokens: [
           {
             symbol: Tokens.WLD,
             token_amount: tokenToDecimals(num, Tokens.WLD).toString(),
           },
         ],
-        description: `Envío WLD a @${rawTag}`,
+        description: `Envío WLD`,
       };
 
       let result: PayResult;
@@ -98,7 +86,7 @@ export const Pay = () => {
 
       const { finalPayload } = result;
 
-      // 4) Confirmar
+      // 3) Confirmar
       setBtnState("verificando");
       const r3 = await fetch("/api/confirm-payment", {
         method: "POST",
@@ -109,7 +97,7 @@ export const Pay = () => {
 
       if (conf?.success) {
         setBtnState("success");
-        showSuccess(`¡Listo! Enviaste ${num} WLD a @${rawTag}`);
+        showSuccess(`¡Listo! Enviaste ${num} WLD`);
       } else {
         showError("No pudimos confirmar la transacción");
         setBtnState(undefined);
@@ -128,7 +116,6 @@ export const Pay = () => {
 
   const getButtonText = () => {
     switch (btnState) {
-      case "resolviendo": return "Resolviendo...";
       case "pagando": return "Pagando...";
       case "verificando": return "Verificando...";
       case "success": return "¡Enviado!";
@@ -138,11 +125,20 @@ export const Pay = () => {
 
   const getButtonState = (): 'pending' | 'success' | 'failed' | undefined => {
     if (btnState === "success") return 'success';
-    if (btnState === "resolviendo" || btnState === "pagando" || btnState === "verificando") return 'pending';
+    if (btnState === "pagando" || btnState === "verificando") return 'pending';
     return undefined;
   };
 
-  const disabled = btnState === "resolviendo" || btnState === "pagando" || btnState === "verificando";
+  const disabled = btnState === "pagando" || btnState === "verificando";
+
+  const pasteFromClipboard = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) setAddress(text.trim());
+    } catch {
+      showError("No pudimos leer el portapapeles");
+    }
+  };
 
   return (
     <div className="w-full max-w-md mx-auto space-y-6">
@@ -154,19 +150,39 @@ export const Pay = () => {
 
       {/* Formulario */}
       <div className="space-y-6">
-        {/* Campo destinatario */}
+        {/* Campo dirección de billetera */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">
-            $lemontag
-          </label>
-          <input
-            type="text"
-            placeholder="$usuariodelemon"
-            value={tag}
-            onChange={(e) => setTag(e.target.value)}
-            disabled={disabled}
-            className="w-full h-12 px-4 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          />
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-foreground">
+              Dirección de billetera
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowHelp(true)}
+              className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-input text-xs text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
+              aria-label="¿Cómo obtengo mi dirección?"
+            >
+              ?
+            </button>
+          </div>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="0x..."
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              disabled={disabled}
+              className="w-full h-12 pr-16 px-4 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            />
+            <button
+              type="button"
+              onClick={pasteFromClipboard}
+              disabled={disabled}
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-sm rounded-md bg-secondary text-foreground hover:bg-secondary/80 border border-input"
+            >
+              Pegar
+            </button>
+          </div>
         </div>
 
         {/* Campo monto */}
@@ -219,6 +235,33 @@ export const Pay = () => {
 
       {/* Toast de estado */}
       <Toast toasts={toasts} removeToast={removeToast} />
+
+      {/* Modal de ayuda */}
+      {showHelp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+          <div className="absolute inset-0" onClick={() => setShowHelp(false)} />
+          <div className="relative w-full h-full p-4 sm:p-8">
+            <div className="absolute right-4 top-4 z-10">
+              <button
+                type="button"
+                onClick={() => setShowHelp(false)}
+                className="px-4 py-2 rounded-lg bg-[#00F068] text-black font-medium shadow hover:opacity-90"
+              >
+                Cerrar
+              </button>
+            </div>
+            <div className="w-full h-full">
+              <iframe
+                title="Cómo obtener tu dirección de Lemon"
+                className="w-full h-full rounded-xl border border-white/10 bg-black"
+                src="https://www.youtube.com/embed/Fmywwu_YZfE?autoplay=1&modestbranding=1&rel=0&controls=0&fs=1"
+                allow="autoplay; encrypted-media; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
