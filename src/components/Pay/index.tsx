@@ -150,7 +150,7 @@ export const Pay = () => {
     isReady && !disabled ? 'bg-yellow-400 hover:bg-yellow-300' : 'bg-emerald-400 hover:bg-emerald-300',
   ].join(' ');
 
-  return (
+  const view = (
     <div className="min-h-dvh w-full grid place-items-center px-4 relative overflow-hidden">
       {/* Fondo degradado */}
       <div className="absolute inset-0 -z-20 bg-black" />
@@ -278,4 +278,6 @@ export const Pay = () => {
       )}
     </div>
   );
+
+  return view;
 };
