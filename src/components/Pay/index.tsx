@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 import { useState } from 'react';
 import { MiniKit, Tokens, tokenToDecimals } from "@worldcoin/minikit-js";
 import { Button, LiveFeedback } from '@worldcoin/mini-apps-ui-kit-react';
@@ -141,10 +142,17 @@ export const Pay = () => {
   };
 
   const isReady = new RegExp('^0x[a-fA-F0-9]{40}$','i').test(address.trim()) && Number(amount) > 0;
+  const buttonClasses = [
+    'w-full',
+    'font-semibold',
+    'text-black',
+    'transition-colors',
+    isReady && !disabled ? 'bg-yellow-400 hover:bg-yellow-300' : 'bg-emerald-400 hover:bg-emerald-300',
+  ].join(' ');
 
   return (
     <div className="min-h-dvh w-full grid place-items-center px-4 relative overflow-hidden">
-      {/* Fondo degradado sutil, estilo diagonal */}
+      {/* Fondo degradado */}
       <div className="absolute inset-0 -z-20 bg-black" />
       <div className="absolute inset-0 -z-10 opacity-90 bg-hero" />
       <div className="w-full max-w-md mx-auto space-y-6 rounded-2xl border border-border card-elevated p-6">
@@ -227,11 +235,7 @@ export const Pay = () => {
             disabled={disabled}
             size="lg"
             variant="primary"
-            className={`w-full font-semibold text-black transition-colors ${
-              isReady && !disabled
-                ? 'bg-yellow-400 hover:bg-yellow-300'
-                : 'bg-emerald-400 hover:bg-emerald-300'
-            }`}
+            className={buttonClasses}
           >
             {getButtonText()}
           </Button>
