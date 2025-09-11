@@ -152,19 +152,14 @@ export const Pay = () => {
 
   const view = (
     <div className="min-h-dvh w-full grid place-items-center px-4 relative overflow-hidden">
-      {/* Fondo degradado */}
       <div className="absolute inset-0 -z-20 bg-black" />
       <div className="absolute inset-0 -z-10 opacity-90 bg-hero" />
       <div className="w-full max-w-md mx-auto space-y-6 rounded-2xl border border-border card-elevated p-6">
-        {/* Header con logo y título */}
         <div className="flex items-center gap-3">
           <LemonIcon className="w-8 h-8" />
           <h1 className="text-xl font-bold text-foreground">Enviar WLD a Lemon</h1>
         </div>
-
-        {/* Formulario */}
         <div className="space-y-6">
-        {/* Campo dirección de billetera */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-foreground">
@@ -199,7 +194,6 @@ export const Pay = () => {
           </div>
         </div>
 
-        {/* Campo monto */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">
             Monto (WLD)
@@ -216,12 +210,10 @@ export const Pay = () => {
           />
         </div>
 
-        {/* Información de balance */}
         <div className="text-sm text-muted-foreground">
           Disponible en tu wallet: —
         </div>
 
-        {/* Botón de envío */}
         <LiveFeedback
           label={{
             pending: getButtonText(),
@@ -240,17 +232,11 @@ export const Pay = () => {
             {getButtonText()}
           </Button>
         </LiveFeedback>
-
-        {/* Mensaje de confirmación */}
         <p className="text-center text-sm text-muted-foreground">
           El envío se confirma dentro de World App
         </p>
       </div>
-
-      {/* Toast de estado */}
       <Toast toasts={toasts} removeToast={removeToast} />
-
-      {/* Modal de ayuda */}
       {showHelp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
           <div className="absolute inset-0" onClick={() => setShowHelp(false)} />
