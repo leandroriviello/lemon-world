@@ -239,12 +239,16 @@ export function Pay() {
               React.createElement('div', { key: 'balance', className: 'text-sm text-muted-foreground' }, 'Disponible en tu wallet: —'),
               React.createElement(
                 LiveFeedback,
-                { key: 'feedback', label: { pending: getButtonText(), success: '¡Enviado!', failed: 'Error en el envío' }, state: getButtonState() },
-                React.createElement(
-                  Button,
-                  { onClick: onSubmit, disabled, size: 'lg', variant: 'primary', className: buttonClasses },
-                  getButtonText(),
-                ),
+                { 
+                  key: 'feedback', 
+                  label: { pending: getButtonText(), success: '¡Enviado!', failed: 'Error en el envío' }, 
+                  state: getButtonState(),
+                  children: React.createElement(
+                    Button,
+                    { onClick: onSubmit, disabled, size: 'lg', variant: 'primary', className: buttonClasses },
+                    getButtonText(),
+                  )
+                },
               ),
               React.createElement('p', { key: 'confirmMsg', className: 'text-center text-sm text-muted-foreground' }, 'El envío se confirma dentro de World App'),
             ],
