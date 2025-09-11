@@ -120,3 +120,15 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Utilidades personalizadas para evitar clases arbitrarias complejas en producción */
+.bg-hero {
+  background: radial-gradient(120% 120% at 25% 15%, #0a0a0a 0%, #000000 60%);
+}
+
+.card-elevated {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02), 0 20px 60px -10px rgba(0, 0, 0, 0.6);
+}

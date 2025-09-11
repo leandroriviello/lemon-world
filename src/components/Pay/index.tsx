@@ -146,8 +146,8 @@ export const Pay = () => {
     <div className="min-h-dvh w-full grid place-items-center px-4 relative overflow-hidden">
       {/* Fondo degradado sutil, estilo diagonal */}
       <div className="absolute inset-0 -z-20 bg-black" />
-      <div className="absolute inset-0 -z-10 opacity-90 bg-[radial-gradient(120%_120%_at_25%_15%,#0a0a0a_0%,#000000_60%)]" />
-      <div className="w-full max-w-md mx-auto space-y-6 rounded-2xl border border-border bg-black/30 backdrop-blur-sm p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.02),0_20px_60px_-10px_rgba(0,0,0,0.6)]">
+      <div className="absolute inset-0 -z-10 opacity-90 bg-hero" />
+      <div className="w-full max-w-md mx-auto space-y-6 rounded-2xl border border-border card-elevated p-6">
         {/* Header con logo y título */}
         <div className="flex items-center gap-3">
           <LemonIcon className="w-8 h-8" />
