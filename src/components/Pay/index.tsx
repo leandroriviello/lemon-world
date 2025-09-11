@@ -140,16 +140,22 @@ export const Pay = () => {
     }
   };
 
-  return (
-    <div className="w-full max-w-md mx-auto space-y-6">
-      {/* Header con logo y título */}
-      <div className="flex items-center gap-3">
-        <LemonIcon className="w-8 h-8" />
-        <h1 className="text-xl font-bold text-foreground">Enviar WLD a Lemon</h1>
-      </div>
+  const isReady = /^0x[a-fA-F0-9]{40}$/.test(address.trim()) && Number(amount) > 0;
 
-      {/* Formulario */}
-      <div className="space-y-6">
+  return (
+    <div className="min-h-dvh w-full grid place-items-center px-4 relative overflow-hidden">
+      {/* Fondo degradado sutil, estilo diagonal */}
+      <div className="absolute inset-0 -z-20 bg-black" />
+      <div className="absolute inset-0 -z-10 opacity-90 bg-[radial-gradient(120%_120%_at_25%_15%,#0a0a0a_0%,#000000_60%)]" />
+      <div className="w-full max-w-md mx-auto space-y-6 rounded-2xl border border-border bg-black/30 backdrop-blur-sm p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.02),0_20px_60px_-10px_rgba(0,0,0,0.6)]">
+        {/* Header con logo y título */}
+        <div className="flex items-center gap-3">
+          <LemonIcon className="w-8 h-8" />
+          <h1 className="text-xl font-bold text-foreground">Enviar WLD a Lemon</h1>
+        </div>
+
+        {/* Formulario */}
+        <div className="space-y-6">
         {/* Campo dirección de billetera */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
@@ -221,7 +227,11 @@ export const Pay = () => {
             disabled={disabled}
             size="lg"
             variant="primary"
-            className="w-full"
+            className={`w-full font-semibold text-black transition-colors ${
+              isReady && !disabled
+                ? 'bg-yellow-400 hover:bg-yellow-300'
+                : 'bg-emerald-400 hover:bg-emerald-300'
+            }`}
           >
             {getButtonText()}
           </Button>
