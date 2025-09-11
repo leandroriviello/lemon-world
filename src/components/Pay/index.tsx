@@ -140,7 +140,7 @@ export const Pay = () => {
     }
   };
 
-  const isReady = /^0x[a-fA-F0-9]{40}$/.test(address.trim()) && Number(amount) > 0;
+  const isReady = new RegExp('^0x[a-fA-F0-9]{40}$','i').test(address.trim()) && Number(amount) > 0;
 
   return (
     <div className="min-h-dvh w-full grid place-items-center px-4 relative overflow-hidden">
