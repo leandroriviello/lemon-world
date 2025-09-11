@@ -20,7 +20,7 @@ type PayResult = {
   finalPayload: PayFinalPayload;
 };
 
-export const Pay = () => {
+export function Pay(): JSX.Element {
   const [amount, setAmount] = useState('');
   const [address, setAddress] = useState<string>("");
   const [btnState, setBtnState] = useState<ButtonState>(undefined);
@@ -266,4 +266,4 @@ export const Pay = () => {
   );
 
   return view;
-};
+}
