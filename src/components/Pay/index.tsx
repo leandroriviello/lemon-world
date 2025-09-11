@@ -150,119 +150,144 @@ export function Pay(): JSX.Element {
     isReady && !disabled ? 'bg-yellow-400 hover:bg-yellow-300' : 'bg-emerald-400 hover:bg-emerald-300',
   ].join(' ');
 
-  const view = (
-    <div className="min-h-dvh w-full grid place-items-center px-4 relative overflow-hidden">
-      <div className="absolute inset-0 -z-20 bg-black" />
-      <div className="absolute inset-0 -z-10 opacity-90 bg-hero" />
-      <div className="w-full max-w-md mx-auto space-y-6 rounded-2xl border border-border card-elevated p-6">
-        <div className="flex items-center gap-3">
-          <LemonIcon className="w-8 h-8" />
-          <h1 className="text-xl font-bold text-foreground">Enviar WLD a Lemon</h1>
-        </div>
-        <div className="space-y-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-foreground">
-              Dirección de billetera
-            </label>
-            <button
-              type="button"
-              onClick={() => setShowHelp(true)}
-              className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-input text-xs text-muted-foreground hover:text-foreground hover:border-foreground transition-colors"
-              aria-label="¿Cómo obtengo mi dirección?"
-            >
-              ?
-            </button>
-          </div>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="0x..."
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              disabled={disabled}
-              className="w-full h-12 pr-16 px-4 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            />
-            <button
-              type="button"
-              onClick={pasteFromClipboard}
-              disabled={disabled}
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-sm rounded-md bg-secondary text-foreground hover:bg-secondary/80 border border-input"
-            >
-              Pegar
-            </button>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">
-            Monto (WLD)
-          </label>
-          <input
-            type="number"
-            placeholder="Monto en WLD"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            disabled={disabled}
-            min="0"
-            step="0.01"
-            className="w-full h-12 px-4 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          />
-        </div>
-
-        <div className="text-sm text-muted-foreground">
-          Disponible en tu wallet: —
-        </div>
-
-        <LiveFeedback
-          label={{
-            pending: getButtonText(),
-            success: "¡Enviado!",
-            failed: "Error en el envío",
-          }}
-          state={getButtonState()}
-        >
-          <Button
-            onClick={onSubmit}
-            disabled={disabled}
-            size="lg"
-            variant="primary"
-            className={buttonClasses}
-          >
-            {getButtonText()}
-          </Button>
-        </LiveFeedback>
-        <p className="text-center text-sm text-muted-foreground">
-          El envío se confirma dentro de World App
-        </p>
-      </div>
-      <Toast toasts={toasts} removeToast={removeToast} />
-      {showHelp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-          <div className="absolute inset-0" onClick={() => setShowHelp(false)} />
-          <div className="relative w-full h-full p-4 sm:p-8">
-            <div className="absolute right-4 top-4 z-10">
-              <button
-                type="button"
-                onClick={() => setShowHelp(false)}
-                className="px-4 py-2 rounded-lg bg-[#00F068] text-black font-medium shadow hover:opacity-90"
-              >
-                Cerrar
-              </button>
-            </div>
-            <div className="w-full h-full">
-              <iframe
-                title="Cómo obtener tu dirección de Lemon"
-                className="w-full h-full rounded-xl border border-white/10 bg-black"
-                src="https://www.youtube.com/embed/Fmywwu_YZfE?autoplay=1&modestbranding=1&rel=0&controls=0&fs=1"
-                allow="autoplay; encrypted-media; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+  const view = React.createElement(
+    'div',
+    { className: 'min-h-dvh w-full grid place-items-center px-4 relative overflow-hidden' },
+    [
+      React.createElement('div', { key: 'bg1', className: 'absolute inset-0 -z-20 bg-black' }),
+      React.createElement('div', { key: 'bg2', className: 'absolute inset-0 -z-10 opacity-90 bg-hero' }),
+      React.createElement(
+        'div',
+        { key: 'card', className: 'w-full max-w-md mx-auto space-y-6 rounded-2xl border border-border card-elevated p-6' },
+        [
+          React.createElement(
+            'div',
+            { key: 'hdr', className: 'flex items-center gap-3' },
+            [
+              React.createElement(LemonIcon, { key: 'icon', className: 'w-8 h-8' }),
+              React.createElement('h1', { key: 'h1', className: 'text-xl font-bold text-foreground' }, 'Enviar WLD a Lemon'),
+            ],
+          ),
+          React.createElement(
+            'div',
+            { key: 'form', className: 'space-y-6' },
+            [
+              React.createElement(
+                'div',
+                { key: 'addrField', className: 'space-y-2' },
+                [
+                  React.createElement(
+                    'div',
+                    { key: 'addrLabel', className: 'flex items-center gap-2' },
+                    [
+                      React.createElement('label', { key: 'lbl', className: 'text-sm font-medium text-foreground' }, 'Dirección de billetera'),
+                      React.createElement(
+                        'button',
+                        {
+                          key: 'help',
+                          type: 'button',
+                          onClick: () => setShowHelp(true),
+                          className: 'inline-flex h-5 w-5 items-center justify-center rounded-full border border-input text-xs text-muted-foreground hover:text-foreground hover:border-foreground transition-colors',
+                          'aria-label': '¿Cómo obtengo mi dirección?',
+                        },
+                        '?',
+                      ),
+                    ],
+                  ),
+                  React.createElement(
+                    'div',
+                    { key: 'addrInputWrap', className: 'relative' },
+                    [
+                      React.createElement('input', {
+                        key: 'addrInput',
+                        type: 'text',
+                        placeholder: '0x...',
+                        value: address,
+                        onChange: (e: React.ChangeEvent<HTMLInputElement>) => setAddress(e.target.value),
+                        disabled,
+                        className:
+                          'w-full h-12 pr-16 px-4 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
+                      }),
+                      React.createElement(
+                        'button',
+                        { key: 'paste', type: 'button', onClick: pasteFromClipboard, disabled, className: 'absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 text-sm rounded-md bg-secondary text-foreground hover:bg-secondary/80 border border-input' },
+                        'Pegar',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              React.createElement(
+                'div',
+                { key: 'amountField', className: 'space-y-2' },
+                [
+                  React.createElement('label', { key: 'amtLbl', className: 'text-sm font-medium text-foreground' }, 'Monto (WLD)'),
+                  React.createElement('input', {
+                    key: 'amtInput',
+                    type: 'number',
+                    placeholder: 'Monto en WLD',
+                    value: amount,
+                    onChange: (e: React.ChangeEvent<HTMLInputElement>) => setAmount(e.target.value),
+                    disabled,
+                    min: 0,
+                    step: 0.01,
+                    className:
+                      'w-full h-12 px-4 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
+                  }),
+                ],
+              ),
+              React.createElement('div', { key: 'balance', className: 'text-sm text-muted-foreground' }, 'Disponible en tu wallet: —'),
+              React.createElement(
+                LiveFeedback,
+                { key: 'feedback', label: { pending: getButtonText(), success: '¡Enviado!', failed: 'Error en el envío' }, state: getButtonState() },
+                React.createElement(
+                  Button,
+                  { onClick: onSubmit, disabled, size: 'lg', variant: 'primary', className: buttonClasses },
+                  getButtonText(),
+                ),
+              ),
+              React.createElement('p', { key: 'confirmMsg', className: 'text-center text-sm text-muted-foreground' }, 'El envío se confirma dentro de World App'),
+            ],
+          ),
+          React.createElement(Toast, { key: 'toast', toasts, removeToast }),
+          showHelp
+            ? React.createElement(
+                'div',
+                { key: 'modal', className: 'fixed inset-0 z-50 flex items-center justify-center bg-black/80' },
+                [
+                  React.createElement('div', { key: 'backdrop', className: 'absolute inset-0', onClick: () => setShowHelp(false) }),
+                  React.createElement(
+                    'div',
+                    { key: 'modalInner', className: 'relative w-full h-full p-4 sm:p-8' },
+                    [
+                      React.createElement(
+                        'div',
+                        { key: 'closeWrap', className: 'absolute right-4 top-4 z-10' },
+                        React.createElement(
+                          'button',
+                          { type: 'button', onClick: () => setShowHelp(false), className: 'px-4 py-2 rounded-lg bg-[#00F068] text-black font-medium shadow hover:opacity-90' },
+                          'Cerrar',
+                        ),
+                      ),
+                      React.createElement(
+                        'div',
+                        { key: 'iframeWrap', className: 'w-full h-full' },
+                        React.createElement('iframe', {
+                          title: 'Cómo obtener tu dirección de Lemon',
+                          className: 'w-full h-full rounded-xl border border-white/10 bg-black',
+                          src: 'https://www.youtube.com/embed/Fmywwu_YZfE?autoplay=1&modestbranding=1&rel=0&controls=0&fs=1',
+                          allow: 'autoplay; encrypted-media; picture-in-picture',
+                          allowFullScreen: true,
+                        }),
+                      ),
+                    ],
+                  ),
+                ],
+              )
+            : null,
+        ],
+      ),
+    ],
   );
 
   return view;
