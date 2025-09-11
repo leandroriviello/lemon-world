@@ -1,0 +1,592 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 .SFNS-Regular;\f2\fnil\fcharset0 HelveticaNeue-Bold;
+\f3\fnil\fcharset0 .SFNS-Semibold;\f4\froman\fcharset0 TimesNewRomanPSMT;\f5\fnil\fcharset0 .AppleSystemUIFontMonospaced-Regular;
+\f6\fmodern\fcharset0 Courier;\f7\fmodern\fcharset0 Courier-Oblique;}
+{\colortbl;\red255\green255\blue255;\red14\green14\blue14;\red155\green162\blue177;\red197\green136\blue83;
+\red136\green185\blue102;\red184\green93\blue213;\red74\green80\blue93;}
+{\*\expandedcolortbl;;\cssrgb\c6700\c6700\c6700;\cssrgb\c67059\c69804\c74902;\cssrgb\c81961\c60392\c40000;
+\cssrgb\c59608\c76471\c47451;\cssrgb\c77647\c47059\c86667;\cssrgb\c36078\c38824\c43922;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs28 \cf2 Aqu\'ed ten\'e9s un 
+\f2\b prompt listo para V0 by Vercel
+\f1\b0 . Copi\'e1/peg\'e1 tal cual. Est\'e1 en espa\'f1ol, pide un sitio moderno, responsive, monocrom\'e1tico (blanco/negro), con tabla comparativa y llamadas a 
+\f2\b APIs p\'fablicas
+\f1\b0  (TRM, Coinbase, Bitso, Paxful y Binance P2P). Tambi\'e9n contempla, opcional, Bancolombia/Davivienda si se agregan credenciales.\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \
+\uc0\u11835 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs28 \cf2 \
+
+\f2\b PROMPT PARA V0 (copiar/pegar):
+\f1\b0 \
+\
+Quiero que construyas una web moderna y ultra-r\'e1pida (Next.js + TypeScript) para 
+\f2\b comparar el valor del d\'f3lar en Colombia (USD/COP)
+\f1\b0  de m\'faltiples fuentes. Debe ser 
+\f2\b 100% responsive
+\f1\b0 , con 
+\f2\b modo oscuro por defecto
+\f1\b0  y paleta 
+\f2\b monocrom\'e1tica
+\f1\b0  (blanco/negro, sin azules ni colores de marca). Est\'e9tica minimalista tipo criptoya.com, pero sin copiar; usa tipograf\'eda limpia, mucho espacio en blanco, y componentes accesibles.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f3\b\fs30 \cf2 Objetivo
+\f1\b0\fs28 \
+\
+Mostrar en una 
+\f2\b tabla comparativa
+\f1\b0  las distintas formas de \'93comprar d\'f3lar\'94 en Colombia:\
+\pard\tqr\tx100\tx260\li260\fi-260\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	
+\f2\b Oficial/Referencia:
+\f1\b0  TRM oficial.\
+	\'95	
+\f2\b Exchanges cripto:
+\f1\b0  Coinbase (USD\uc0\u8594 COP), Bitso (USDT/COP \u8776  USD).\
+	\'95	
+\f2\b P2P:
+\f1\b0  Paxful (tasas fiat) y Binance P2P (endpoint no oficial).\
+	\'95	
+\f2\b (Opcional)
+\f1\b0  Bancolombia y Davivienda si el usuario agrega credenciales.\
+\
+Calcular y mostrar para cada fuente:\
+	\'95	
+\f2\b Precio USD/COP
+\f1\b0  (num\'e9rico).\
+	\'95	
+\f2\b Tipo:
+\f1\b0  Oficial, Spot, P2P.\
+	\'95	
+\f2\b Spread vs TRM
+\f1\b0  (en % y valor).\
+	\'95	
+\f2\b \'daltima actualizaci\'f3n
+\f1\b0  (timestamp legible).\
+	\'95	
+\f2\b Latencia
+\f1\b0  estimada de la consulta.\
+	\'95	
+\f2\b Estado
+\f1\b0  (OK / error con tooltip).\
+	\'95	
+\f2\b Link
+\f1\b0  a la fuente.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f3\b\fs30 \cf2 P\'e1ginas y estructura
+\f1\b0\fs28 \
+\pard\tqr\tx100\tx260\li260\fi-260\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	
+\f2\b /
+\f1\b0  (Home): Tabla comparativa principal + filtros + detalles.\
+	\'95	
+\f2\b /api/
+\f1\b0 : Endpoints serverless (Next.js API routes) que act\'faan como proxy para evitar CORS y normalizar respuestas.\
+	\'95	
+\f2\b /about
+\f1\b0 : Breve explicaci\'f3n de las fuentes, l\'edmites y descargo de responsabilidad.\
+	\'95	
+\f2\b /status
+\f1\b0 : Salud de las integraciones (tiempos, errores recientes).\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f3\b\fs30 \cf2 UX/UI
+\f1\b0\fs28 \
+\pard\tqr\tx100\tx260\li260\fi-260\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	
+\f2\b Modo oscuro por defecto
+\f1\b0 , toggle \'93Light/Dark\'94.\
+	\'95	Paleta: 
+\f2\b #000, #111, #1a1a1a, #eaeaea, #fff
+\f1\b0 , nada de colores vibrantes; usa 
+\f2\b solo grises/blancos/negros
+\f1\b0 . Estados (OK/Warning/Error) con 
+\f2\b bordes/p\'edldoras
+\f1\b0  en grises + iconograf\'eda.\
+	\'95	
+\f2\b Tabla sticky
+\f1\b0  (encabezado siempre visible), 
+\f2\b ordenable
+\f1\b0  por precio, spread y latencia; 
+\f2\b filtros
+\f1\b0  por tipo (Oficial/Spot/P2P) y por fuente.\
+	\'95	
+\f2\b Badges
+\f1\b0  para tipo de fuente (Oficial / Spot / P2P).\
+	\'95	
+\f2\b SWR/ISR
+\f1\b0  para refrescos sin parpadeo.\
+	\'95	
+\f2\b Skeleton loaders
+\f1\b0  en filas mientras cargan.\
+	\'95	
+\f2\b Cards
+\f1\b0  resumidas arriba: \'93TRM Hoy\'94, \'93Mejor precio Spot\'94, \'93Mejor precio P2P\'94, \'93Brecha P2P vs TRM\'94.\
+	\'95	
+\f2\b Tooltips
+\f1\b0  con explicaci\'f3n de cada m\'e9trica.\
+	\'95	
+\f2\b Mobile-first
+\f1\b0 : tabla apilada en tarjetas con los mismos campos.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f3\b\fs30 \cf2 L\'f3gica de datos (normalizaci\'f3n)
+\f1\b0\fs28 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f3\b\fs26 \cf2 Fuentes obligatorias (p\'fablicas, sin auth):
+\f1\b0\fs28 \
+\pard\tqr\tx260\tx420\li420\fi-420\sl324\slmult1\sb240\partightenfactor0
+
+\f4 \cf2 	1.	
+\f2\b TRM oficial (Superfinanciera de Colombia \'96 Datos Abiertos)
+\f1\b0 \
+\pard\tqr\tx500\tx660\li660\fi-660\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	Endpoint (GET): 
+\f5 https://www.datos.gov.co/resource/ceyp-9c7c.json
+\f1 \
+	\'95	\'daltima TRM del d\'eda actual (o el m\'e1s reciente si es fin de semana/feriado). Normalizar a n\'famero 
+\f5 trm
+\f1  (COP por 1 USD).\
+	\'95	Nota: actualizar una vez al d\'eda, pero permitir \'93force refresh\'94.\
+\pard\tqr\tx260\tx420\li420\fi-420\sl324\slmult1\sb240\partightenfactor0
+
+\f4 \cf2 	2.	
+\f2\b Coinbase (Exchange Rates)
+\f1\b0 \
+\pard\tqr\tx500\tx660\li660\fi-660\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	Endpoint (GET): 
+\f5 https://api.coinbase.com/v2/exchange-rates?currency=USD
+\f1 \
+	\'95	Buscar 
+\f5 rates.COP
+\f1  \uc0\u8594  n\'famero. Considerarlo 
+\f2\b Spot (FX)
+\f1\b0 .\
+\pard\tqr\tx260\tx420\li420\fi-420\sl324\slmult1\sb240\partightenfactor0
+
+\f4 \cf2 	3.	
+\f2\b Bitso (Ticker USDT/COP)
+\f1\b0 \
+\pard\tqr\tx500\tx660\li660\fi-660\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	Endpoint (GET): 
+\f5 https://api.bitso.com/v3/ticker?book=usdt_cop
+\f1 \
+	\'95	Tomar 
+\f5 payload.last
+\f1  como precio de 
+\f2\b 1 USDT en COP
+\f1\b0  (\uc0\u8776  1 USD). Tipo: 
+\f2\b Spot (Crypto)
+\f1\b0 .\
+\pard\tqr\tx260\tx420\li420\fi-420\sl324\slmult1\sb240\partightenfactor0
+
+\f4 \cf2 	4.	
+\f2\b Paxful (Fiat FX rates)
+\f1\b0 \
+\pard\tqr\tx500\tx660\li660\fi-660\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	Endpoint (GET): 
+\f5 https://paxful.com/api/currency/rates
+\f1 \
+	\'95	Extraer la tasa 
+\f2\b USD\uc0\u8594 COP
+\f1\b0  que expone el JSON (si devuelve mapa de monedas, tomar 
+\f5 COP
+\f1  contra 
+\f5 USD
+\f1 ). Tipo: 
+\f2\b P2P (referencia Paxful)
+\f1\b0 .\
+	\'95	Notar que suelen actualizar cada pocos minutos.\
+\pard\tqr\tx260\tx420\li420\fi-420\sl324\slmult1\sb240\partightenfactor0
+
+\f4 \cf2 	5.	
+\f2\b Binance P2P (NO oficial, usar bajo responsabilidad)
+\f1\b0 \
+\pard\tqr\tx500\tx660\li660\fi-660\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	Endpoint (POST): 
+\f5 https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search
+\f1 \
+	\'95	Body JSON m\'ednimo (ejemplo para compras de USDT en COP):
+\f0\fs24 \cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f6\fs28 \cf3 \{\
+  \cf4 "asset"\cf3 : \cf5 "USDT"\cf3 ,\
+  \cf4 "fiat"\cf3 : \cf5 "COP"\cf3 ,\
+  \cf4 "tradeType"\cf3 : \cf5 "BUY"\cf3 ,\
+  \cf4 "page"\cf3 : \cf4 1\cf3 ,\
+  \cf4 "rows"\cf3 : \cf4 20\cf3 \
+\}
+\f0\fs24 \cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\fi660\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs28 \cf2 \
+\pard\tqr\tx500\tx660\li660\fi-660\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	Leer 
+\f5 data
+\f1  \uc0\u8594  
+\f5 adv
+\f1  \uc0\u8594  
+\f5 price
+\f1  (string). Tomar 
+\f2\b mediana
+\f1\b0  de las primeras N ofertas v\'e1lidas como \'93precio P2P\'94 para robustez. Tipo: 
+\f2\b P2P
+\f1\b0 .\
+	\'95	Requiere 
+\f2\b proxy serverless
+\f1\b0  (Next API route) para CORS y headers.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f3\b\fs26 \cf2 Fuentes opcionales (gratuitas, requieren registro):
+\f1\b0\fs28 \
+\pard\tqr\tx100\tx260\li260\fi-260\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	
+\f2\b Bancolombia \'96 Exchange Rates (Consignments / Remesas)
+\f1\b0 \
+\pard\tqr\tx500\tx660\li660\fi-400\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	Autenticaci\'f3n v\'eda API Key/portal. Si hay credenciales en 
+\f5 .env
+\f1 , mostrar fuente y consumir; si no, ocultar fila + mostrar tooltip \'93agreg\'e1 tus credenciales para ver esta fuente\'94.\
+\pard\tqr\tx100\tx260\li260\fi-260\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	
+\f2\b Davivienda \'96 Remesas v2
+\f1\b0 \
+\pard\tqr\tx500\tx660\li660\fi-400\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	Igual criterio que Bancolombia.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f3\b\fs26 \cf2 C\'e1lculos
+\f1\b0\fs28 \
+\pard\tqr\tx100\tx260\li260\fi-260\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	
+\f2\b Spread vs TRM (%):
+\f1\b0  
+\f5 ((precioFuente - TRM) / TRM) * 100
+\f1 \
+	\'95	
+\f2\b Spread vs TRM (valor):
+\f1\b0  
+\f5 precioFuente - TRM
+\f1 \
+	\'95	
+\f2\b \'daltima actualizaci\'f3n:
+\f1\b0  timestamp local.\
+	\'95	
+\f2\b Latencia:
+\f1\b0  medir tiempo de fetch (ms) y mostrar.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f3\b\fs30 \cf2 Arquitectura t\'e9cnica
+\f1\b0\fs28 \
+\pard\tqr\tx100\tx260\li260\fi-260\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	
+\f2\b Next.js 14+/App Router + TypeScript
+\f1\b0 .\
+	\'95	
+\f2\b API Routes
+\f1\b0  por fuente:\
+\pard\tqr\tx500\tx660\li660\fi-400\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	
+\f5 /api/trm
+\f1  \uc0\u8594  llama a Datos Abiertos, retorna 
+\f5 \{ price, source, ts \}
+\f1 \
+	\'95	
+\f5 /api/coinbase
+\f1  \uc0\u8594  retorna 
+\f5 \{ price, source, ts \}
+\f1 \
+	\'95	
+\f5 /api/bitso
+\f1  \uc0\u8594  retorna 
+\f5 \{ price, source, ts \}
+\f1 \
+	\'95	
+\f5 /api/paxful
+\f1  \uc0\u8594  retorna 
+\f5 \{ price, source, ts \}
+\f1 \
+	\'95	
+\f5 /api/binance-p2p
+\f1  \uc0\u8594  hace el POST y retorna 
+\f5 \{ priceMedian, offersSample, source, ts \}
+\f1 \
+	\'95	
+\f5 /api/bancolombia
+\f1  y 
+\f5 /api/davivienda
+\f1  \uc0\u8594  solo si hay 
+\f5 process.env
+\f1  con credenciales\
+\pard\tqr\tx100\tx260\li260\fi-260\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	
+\f2\b Normalizador
+\f1\b0 : una funci\'f3n que convierte cada respuesta a un modelo com\'fan:
+\f0\fs24 \cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f6\fs28 \cf6 type\cf3  RateRow = \{\
+  \cf4 source\cf3 : \cf5 'TRM'\cf3  | \cf5 'Coinbase'\cf3  | \cf5 'Bitso'\cf3  | \cf5 'Paxful'\cf3  | \cf5 'Binance P2P'\cf3  | \cf5 'Bancolombia'\cf3  | \cf5 'Davivienda'\cf3 ;\
+  \cf4 type\cf3 : \cf5 'Oficial'\cf3  | \cf5 'Spot'\cf3  | \cf5 'P2P'\cf3 ;\
+  \cf4 price\cf3 : number;        
+\f7\i \cf7 // COP por 1 USD
+\f6\i0 \cf3 \
+  \cf4 updatedAt\cf3 : string;    
+\f7\i \cf7 // ISO
+\f6\i0 \cf3 \
+  \cf4 latencyMs\cf3 : number;\
+  \cf4 link\cf3 : string;         
+\f7\i \cf7 // URL p\'fablica de la fuente
+\f6\i0 \cf3 \
+  \cf4 status\cf3 : \cf5 'OK'\cf3  | \cf5 'ERROR'\cf3 ;\
+  \cf4 error\cf3 ?: string;\
+\}
+\f0\fs24 \cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\fi260\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs28 \cf2 \
+\pard\tqr\tx100\tx260\li260\fi-260\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	
+\f2\b SWR
+\f1\b0  en el cliente para refrescar las filas cada 
+\f2\b 30\'9660 s
+\f1\b0  (TRM cada 6 h).\
+	\'95	
+\f2\b Caching
+\f1\b0 : 
+\f5 fetch()
+\f1  con 
+\f5 revalidate
+\f1  y 
+\f2\b Redis/Vercel KV opcional
+\f1\b0  para Binance P2P (60\'96120 s).\
+	\'95	
+\f2\b Manejo de errores
+\f1\b0 : si falla una fuente, mostrar fila con 
+\f5 status=ERROR
+\f1  y tooltip con mensaje.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f3\b\fs30 \cf2 Componentes
+\f1\b0\fs28 \
+\pard\tqr\tx100\tx260\li260\fi-260\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	
+\f2\b Header
+\f1\b0  con t\'edtulo \'93Comparador USD/COP Colombia\'94, toggle modo oscuro y link a /about y /status.\
+	\'95	
+\f2\b Stats Cards
+\f1\b0  (4): TRM Hoy, Mejor Spot, Mejor P2P, Brecha P2P/TRM.\
+	\'95	
+\f2\b Tabla comparativa
+\f1\b0  con columnas: 
+\f2\b Fuente
+\f1\b0 , 
+\f2\b Tipo
+\f1\b0 , 
+\f2\b Precio (COP)
+\f1\b0 , 
+\f2\b Spread vs TRM
+\f1\b0 , 
+\f2\b Actualizaci\'f3n
+\f1\b0 , 
+\f2\b Latencia
+\f1\b0 , 
+\f2\b Fuente
+\f1\b0  (link). Ordenable y con buscador.\
+	\'95	
+\f2\b Footnote
+\f1\b0  con descargo: \'93Precios informativos. P2P puede incluir comisiones del comerciante y m\'e9todos de pago.\'94\
+	\'95	
+\f2\b /status
+\f1\b0 : lista de integraciones con ping, \'faltimo error, tiempo de respuesta promedio.\
+	\'95	
+\f2\b SEO/Meta
+\f1\b0 : t\'edtulo, descripci\'f3n, 
+\f2\b Open Graph
+\f1\b0  y JSON-LD (sitio \'93PriceComparison\'94).\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f3\b\fs30 \cf2 Estilo
+\f1\b0\fs28 \
+\pard\tqr\tx100\tx260\li260\fi-260\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	
+\f2\b Tailwind CSS
+\f1\b0  + 
+\f2\b shadcn/ui
+\f1\b0  para tabla, cards, tooltips y toggle.\
+	\'95	Bordes 
+\f2\b 1px
+\f1\b0  grises (
+\f5 #1f1f1f
+\f1 ), esquinas redondeadas 
+\f2\b 2xl
+\f1\b0 , sombras muy suaves.\
+	\'95	\'cdconos minimalistas (lucide-react).\
+	\'95	
+\f2\b Sin colores
+\f1\b0 : solo grises/negro/blanco. Estados con opacidades/contornos, no colores vivos.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f3\b\fs30 \cf2 Seguridad y l\'edmites
+\f1\b0\fs28 \
+\pard\tqr\tx100\tx260\li260\fi-260\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	
+\f2\b Nunca
+\f1\b0  llamar a Binance P2P desde el cliente: siempre v\'eda 
+\f5 /api/binance-p2p
+\f1 .\
+	\'95	Sanitizar inputs de 
+\f5 /api/binance-p2p
+\f1  (validar 
+\f5 tradeType
+\f1 , 
+\f5 page
+\f1 , 
+\f5 rows
+\f1 ).\
+	\'95	Respetar 
+\f2\b rate limits
+\f1\b0 : cachear Binance P2P y Paxful al menos 30\'9660 s.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f3\b\fs30 \cf2 Ejemplos de fetch en API routes (pseudoc\'f3digo)
+\f0\b0\fs24 \cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f7\i\fs28 \cf7 // /api/trm
+\f6\i0 \cf3 \
+\cf6 export\cf3  \cf6 async\cf3  \cf6 function\cf3  GET() \{\
+  \cf6 const\cf3  t0 = Date.now();\
+  \cf6 const\cf3  res = \cf6 await\cf3  fetch(\cf5 'https://www.datos.gov.co/resource/ceyp-9c7c.json'\cf3 , \{ \cf4 next\cf3 : \{ \cf4 revalidate\cf3 : \cf4 21600\cf3  \} \});\
+  \cf6 const\cf3  data = \cf6 await\cf3  res.json();\
+  \cf6 const\cf3  latest = 
+\f7\i \cf7 /* elegir la fila m\'e1s reciente y parsear "valor" a number */
+\f6\i0 \cf3 ;\
+  \cf6 return\cf3  Response.json(\{ \cf4 source\cf3 : \cf5 'TRM'\cf3 , \cf4 type\cf3 : \cf5 'Oficial'\cf3 , \cf4 price\cf3 : latest, \cf4 updatedAt\cf3 : \cf6 new\cf3  Date().toISOString(), \cf4 latencyMs\cf3 : Date.now()-t0, \cf4 link\cf3 : \cf5 'https://www.datos.gov.co/Econom-a-y-Finanzas/TRM/ceyp-9c7c'\cf3  \});\
+\}\
+\
+
+\f7\i \cf7 // /api/coinbase
+\f6\i0 \cf3 \
+\cf6 export\cf3  \cf6 async\cf3  \cf6 function\cf3  GET() \{\
+  \cf6 const\cf3  t0 = Date.now();\
+  \cf6 const\cf3  res = \cf6 await\cf3  fetch(\cf5 'https://api.coinbase.com/v2/exchange-rates?currency=USD'\cf3 , \{ \cf4 next\cf3 : \{ \cf4 revalidate\cf3 : \cf4 60\cf3  \} \});\
+  \cf6 const\cf3  \{ data \} = \cf6 await\cf3  res.json();\
+  \cf6 const\cf3  price = Number(data.rates.COP);\
+  \cf6 return\cf3  Response.json(\{ \cf4 source\cf3 : \cf5 'Coinbase'\cf3 , \cf4 type\cf3 : \cf5 'Spot'\cf3 , price, \cf4 updatedAt\cf3 : \cf6 new\cf3  Date().toISOString(), \cf4 latencyMs\cf3 : Date.now()-t0, \cf4 link\cf3 : \cf5 'https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates'\cf3  \});\
+\}\
+\
+
+\f7\i \cf7 // /api/bitso
+\f6\i0 \cf3 \
+\cf6 export\cf3  \cf6 async\cf3  \cf6 function\cf3  GET() \{\
+  \cf6 const\cf3  t0 = Date.now();\
+  \cf6 const\cf3  res = \cf6 await\cf3  fetch(\cf5 'https://api.bitso.com/v3/ticker?book=usdt_cop'\cf3 , \{ \cf4 next\cf3 : \{ \cf4 revalidate\cf3 : \cf4 30\cf3  \} \});\
+  \cf6 const\cf3  \{ payload \} = \cf6 await\cf3  res.json();\
+  \cf6 const\cf3  price = Number(payload.last);\
+  \cf6 return\cf3  Response.json(\{ \cf4 source\cf3 : \cf5 'Bitso'\cf3 , \cf4 type\cf3 : \cf5 'Spot'\cf3 , price, \cf4 updatedAt\cf3 : \cf6 new\cf3  Date().toISOString(), \cf4 latencyMs\cf3 : Date.now()-t0, \cf4 link\cf3 : \cf5 'https://docs.bitso.com/'\cf3  \});\
+\}\
+\
+
+\f7\i \cf7 // /api/paxful
+\f6\i0 \cf3 \
+\cf6 export\cf3  \cf6 async\cf3  \cf6 function\cf3  GET() \{\
+  \cf6 const\cf3  t0 = Date.now();\
+  \cf6 const\cf3  res = \cf6 await\cf3  fetch(\cf5 'https://paxful.com/api/currency/rates'\cf3 , \{ \cf4 next\cf3 : \{ \cf4 revalidate\cf3 : \cf4 60\cf3  \} \});\
+  \cf6 const\cf3  data = \cf6 await\cf3  res.json();\
+  \cf6 const\cf3  price = 
+\f7\i \cf7 /* extraer USD->COP */
+\f6\i0 \cf3 ;\
+  \cf6 return\cf3  Response.json(\{ \cf4 source\cf3 : \cf5 'Paxful'\cf3 , \cf4 type\cf3 : \cf5 'P2P'\cf3 , price, \cf4 updatedAt\cf3 : \cf6 new\cf3  Date().toISOString(), \cf4 latencyMs\cf3 : Date.now()-t0, \cf4 link\cf3 : \cf5 'https://paxful.readthedocs.io/'\cf3  \});\
+\}\
+\
+
+\f7\i \cf7 // /api/binance-p2p
+\f6\i0 \cf3 \
+\cf6 export\cf3  \cf6 async\cf3  \cf6 function\cf3  GET() \{\
+  \cf6 const\cf3  t0 = Date.now();\
+  \cf6 const\cf3  body = \{ \cf4 asset\cf3 : \cf5 'USDT'\cf3 , \cf4 fiat\cf3 : \cf5 'COP'\cf3 , \cf4 tradeType\cf3 : \cf5 'BUY'\cf3 , \cf4 page\cf3 : \cf4 1\cf3 , \cf4 rows\cf3 : \cf4 20\cf3  \};\
+  \cf6 const\cf3  res = \cf6 await\cf3  fetch(\cf5 'https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search'\cf3 , \{\
+    \cf4 method\cf3 : \cf5 'POST'\cf3 ,\
+    \cf4 headers\cf3 : \{ \cf5 'content-type'\cf3 : \cf5 'application/json'\cf3  \},\
+    \cf4 body\cf3 : JSON.stringify(body),\
+    
+\f7\i \cf7 // Opcional: setear user-agent u otros headers si Binance lo requiere
+\f6\i0 \cf3 \
+    \cf4 next\cf3 : \{ \cf4 revalidate\cf3 : \cf4 60\cf3  \}\
+  \});\
+  \cf6 const\cf3  json = \cf6 await\cf3  res.json();\
+  \cf6 const\cf3  prices = json?.data?.map((\cf4 x\cf3 :any)=>Number(x?.adv?.price)).filter((\cf4 n\cf3 :number)=>Number.isFinite(n));\
+  \cf6 const\cf3  priceMedian = 
+\f7\i \cf7 /* calcular mediana */
+\f6\i0 \cf3 ;\
+  \cf6 return\cf3  Response.json(\{ \cf4 source\cf3 : \cf5 'Binance P2P'\cf3 , \cf4 type\cf3 : \cf5 'P2P'\cf3 , \cf4 price\cf3 : priceMedian, \cf4 offersSample\cf3 : prices.slice(\cf4 0\cf3 ,\cf4 5\cf3 ), \cf4 updatedAt\cf3 : \cf6 new\cf3  Date().toISOString(), \cf4 latencyMs\cf3 : Date.now()-t0, \cf4 link\cf3 : \cf5 'https://p2p.binance.com'\cf3  \});\
+\}
+\f0\fs24 \cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f3\b\fs30 \cf2 Testing/Calidad
+\f1\b0\fs28 \
+\pard\tqr\tx100\tx260\li260\fi-260\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	Validar NaN/undefined y mostrar \'93\'97\'94 en celda con tooltip de error.\
+	\'95	Redondear precio a 2 decimales y spread a 2 decimales.\
+	\'95	Unit tests b\'e1sicos de normalizaci\'f3n y c\'e1lculo de spread/mediana.\
+	\'95	Lighthouse performance \uc0\u8805  95 en mobile/desktop.\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f3\b\fs30 \cf2 Licencias y disclaimers
+\f1\b0\fs28 \
+\pard\tqr\tx100\tx260\li260\fi-260\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	A\'f1adir footer con: \'93Datos informativos, sin garant\'eda. Verific\'e1 siempre en la fuente antes de operar. Binance P2P es no oficial y puede cambiar sin aviso.\'94\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f2\b \cf2 Entrega esperada
+\f1\b0 \
+\pard\tqr\tx100\tx260\li260\fi-260\sl324\slmult1\sb240\partightenfactor0
+\cf2 	\'95	Proyecto Next.js listo para desplegar en Vercel.\
+	\'95	C\'f3digo limpio, componentes desacoplados, comentarios claros en cada API route.\
+	\'95	Readme con variables de entorno (si se activan Bancolombia/Davivienda) y c\'f3mo correr local.\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \
+\uc0\u11835 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl324\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs28 \cf2 \
+\'bfQuer\'e9s que tambi\'e9n te arme un 
+\f2\b README
+\f1\b0  y un 
+\f2\b .env.example
+\f1\b0  para que V0 lo incluya en el repo?}

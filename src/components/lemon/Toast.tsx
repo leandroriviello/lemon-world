@@ -23,14 +23,14 @@ export default function Toast({ toasts, removeToast }: Props) {
       {toasts.map(t => (
         <div
           key={t.id}
-          className="flex items-center justify-between gap-3 rounded-2xl px-4 py-3
-                     text-sm text-black bg-white/90 shadow ring-1 ring-white/40 backdrop-blur"
+          className="flex items-center justify-between gap-3 rounded-lg px-4 py-3
+                     text-sm text-card-foreground bg-card shadow-lg ring-1 ring-border backdrop-blur"
         >
           <span
             className={
-              t.type === "error" ? "text-red-600"
-              : t.type === "success" ? "text-emerald-600"
-              : "text-zinc-600"
+              t.type === "error" ? "text-destructive"
+              : t.type === "success" ? "text-green-600"
+              : "text-muted-foreground"
             }
             aria-hidden
           >●</span>
@@ -38,7 +38,7 @@ export default function Toast({ toasts, removeToast }: Props) {
           <button
             onClick={() => removeToast(t.id)}
             aria-label="Cerrar"
-            className="opacity-60 hover:opacity-100"
+            className="opacity-60 hover:opacity-100 text-muted-foreground hover:text-foreground transition-colors"
           >
             ✕
           </button>

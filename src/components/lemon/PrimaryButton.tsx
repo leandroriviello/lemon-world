@@ -26,7 +26,7 @@ export function PrimaryButton({
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
-      className={`h-12 px-6 bg-[#00F068] text-black font-semibold rounded-2xl transition-all duration-200 hover:opacity-90 active:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+      className={`h-12 px-6 bg-primary text-primary-foreground font-semibold rounded-lg transition-all duration-200 hover:opacity-90 active:opacity-80 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
         fullWidth ? "w-full" : ""
       }`}
     >

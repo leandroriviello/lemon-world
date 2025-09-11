@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { MiniKit, Tokens, tokenToDecimals } from "@worldcoin/minikit-js";
+import { Button, LiveFeedback } from '@worldcoin/mini-apps-ui-kit-react';
 import Toast from "@/components/lemon/Toast";
 import { useToast } from "@/components/lemon/useToast";
 import { LemonIcon } from './LemonIcon';
@@ -125,74 +126,95 @@ export const Pay = () => {
     }
   };
 
-  const disabled =
-    btnState === "resolviendo" || btnState === "pagando" || btnState === "verificando";
+  const getButtonText = () => {
+    switch (btnState) {
+      case "resolviendo": return "Resolviendo...";
+      case "pagando": return "Pagando...";
+      case "verificando": return "Verificando...";
+      case "success": return "¡Enviado!";
+      default: return "Enviar WLD";
+    }
+  };
+
+  const getButtonState = (): 'pending' | 'success' | 'failed' | undefined => {
+    if (btnState === "success") return 'success';
+    if (btnState === "resolviendo" || btnState === "pagando" || btnState === "verificando") return 'pending';
+    return undefined;
+  };
+
+  const disabled = btnState === "resolviendo" || btnState === "pagando" || btnState === "verificando";
 
   return (
-    <div className="min-h-screen w-full bg-gradient-dark flex items-center justify-center p-4">
-      {/* Contenedor principal con efecto glassmorphism */}
-      <div className="w-full max-w-md mx-auto">
-        {/* Header con logo y título */}
-        <div className="flex items-center gap-3 mb-8">
-          <LemonIcon className="w-8 h-8" />
-          <h1 className="text-xl font-bold text-white font-sans">Enviar WLD a Lemon</h1>
+    <div className="w-full max-w-md mx-auto space-y-6">
+      {/* Header con logo y título */}
+      <div className="flex items-center gap-3">
+        <LemonIcon className="w-8 h-8" />
+        <h1 className="text-xl font-bold text-foreground">Enviar WLD a Lemon</h1>
+      </div>
+
+      {/* Formulario */}
+      <div className="space-y-6">
+        {/* Campo destinatario */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">
+            $lemontag
+          </label>
+          <input
+            type="text"
+            placeholder="$usuariodelemon"
+            value={tag}
+            onChange={(e) => setTag(e.target.value)}
+            disabled={disabled}
+            className="w-full h-12 px-4 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          />
         </div>
 
-        {/* Formulario con efecto glassmorphism */}
-        <div className="glassmorphism rounded-[20px] p-6 shadow-2xl transition-smooth">
-          {/* Campo destinatario */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-white mb-3 font-sans">
-              $lemontag
-            </label>
-            <input
-              type="text"
-              placeholder="$usuariodelemon"
-              value={tag}
-              onChange={(e) => setTag(e.target.value)}
-              className="glassmorphism-input w-full p-4 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-[#00F068] focus:ring-2 focus:ring-[#00F068] focus:ring-opacity-20 transition-smooth"
-            />
-          </div>
+        {/* Campo monto */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">
+            Monto (WLD)
+          </label>
+          <input
+            type="number"
+            placeholder="Monto en WLD"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            disabled={disabled}
+            min="0"
+            step="0.01"
+            className="w-full h-12 px-4 bg-background border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          />
+        </div>
 
-          {/* Campo monto */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-white mb-3 font-sans">
-              Monto (WLD)
-            </label>
-            <input
-              type="text"
-              placeholder="Monto en WLD"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="glassmorphism-input w-full p-4 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-[#00F068] focus:ring-2 focus:ring-[#00F068] focus:ring-opacity-20 transition-smooth"
-            />
-          </div>
+        {/* Información de balance */}
+        <div className="text-sm text-muted-foreground">
+          Disponible en tu wallet: —
+        </div>
 
-          {/* Información de balance */}
-          <div className="mb-6">
-            <p className="text-gray-300 text-sm font-sans">
-              Disponible en tu wallet: —
-            </p>
-          </div>
-
-          {/* Botón de envío */}
-          <button
+        {/* Botón de envío */}
+        <LiveFeedback
+          label={{
+            pending: getButtonText(),
+            success: "¡Enviado!",
+            failed: "Error en el envío",
+          }}
+          state={getButtonState()}
+        >
+          <Button
             onClick={onSubmit}
             disabled={disabled}
-            className="w-full py-4 bg-gradient-to-r from-[#00F068] to-[#00A849] rounded-2xl text-black font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed hover:from-[#00A849] hover:to-[#00F068] transition-smooth transform hover:scale-[1.02] active:scale-[0.98] shadow-glow shadow-glow-hover"
+            size="lg"
+            variant="primary"
+            className="w-full"
           >
-            {btnState === "resolviendo" ? "Resolviendo..." : 
-             btnState === "pagando" ? "Pagando..." : 
-             btnState === "verificando" ? "Verificando..." : 
-             btnState === "success" ? "¡Enviado!" : 
-             "Enviar WLD"}
-          </button>
+            {getButtonText()}
+          </Button>
+        </LiveFeedback>
 
-          {/* Mensaje de confirmación */}
-          <p className="text-center text-gray-300 text-sm mt-4 font-sans">
-            El envío se confirma dentro de World App
-          </p>
-        </div>
+        {/* Mensaje de confirmación */}
+        <p className="text-center text-sm text-muted-foreground">
+          El envío se confirma dentro de World App
+        </p>
       </div>
 
       {/* Toast de estado */}
