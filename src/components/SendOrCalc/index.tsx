@@ -86,7 +86,7 @@ export const SendOrCalc = () => {
       <div className="sticky z-20" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}>
         {/* Language toggle on top-right */}
         <div className="w-full flex justify-end mb-10">
-          <div className="w-[132px]"><LanguageToggle /></div>
+          <div className="w-[198px]"><LanguageToggle /></div>
         </div>
         {/* Big segmented control full width below */}
         <div className="relative w-full h-14 rounded-full border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.3)] overflow-hidden">
