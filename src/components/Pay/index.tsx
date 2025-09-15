@@ -180,6 +180,66 @@ export const Pay = () => {
     return "";
   };
 
+  const handleOpenLemon = () => {
+    try {
+      const fallback = process.env.NEXT_PUBLIC_LEMON_FALLBACK_URL || 'https://lemon.me';
+      const iosStore = process.env.NEXT_PUBLIC_LEMON_IOS_STORE_URL || '';
+      const androidStore = process.env.NEXT_PUBLIC_LEMON_ANDROID_STORE_URL || '';
+      const ua = typeof navigator !== 'undefined' ? navigator.userAgent || '' : '';
+      const isAndroid = /Android/i.test(ua);
+      const isIOS = /iPhone|iPad|iPod/i.test(ua);
+      let didHide = false;
+      const onVis = () => {
+        if (document.hidden) didHide = true;
+      };
+      document.addEventListener('visibilitychange', onVis);
+      // Intenta abrir el deeplink
+      window.location.href = 'lemoncash://app/currency/WLD';
+      // Si no cambia de app en ~1s, vamos al fallback
+      setTimeout(() => {
+        document.removeEventListener('visibilitychange', onVis);
+        if (!didHide) {
+          showInfo('No se detectó la app. Abriendo la tienda...');
+          if (isAndroid) {
+            // 1) Intento abrir Play Store app vía market://
+            let pkg = 'com.applemoncash';
+            try {
+              if (androidStore) {
+                const u = new URL(androidStore);
+                pkg = u.searchParams.get('id') || pkg;
+              }
+              if (!pkg && androidStore) {
+                const m = androidStore.match(/id=([^&]+)/);
+                if (m && m[1]) pkg = m[1];
+              }
+            } catch {}
+
+            const onVis2 = () => {
+              if (document.hidden) didHide = true;
+            };
+            document.addEventListener('visibilitychange', onVis2);
+            window.location.href = `market://details?id=${pkg}`;
+            // 2) Si tampoco abre, caemos a la URL web
+            setTimeout(() => {
+              document.removeEventListener('visibilitychange', onVis2);
+              if (!didHide) {
+                const targetWeb = androidStore || fallback;
+                window.open(targetWeb, '_blank', 'noopener,noreferrer');
+              }
+            }, 900);
+          } else if (isIOS) {
+            const targetUrl = iosStore || fallback;
+            window.open(targetUrl, '_blank', 'noopener,noreferrer');
+          } else {
+            window.open(fallback, '_blank', 'noopener,noreferrer');
+          }
+        }
+      }, 1200);
+    } catch (e) {
+      console.error('deeplink error', e);
+    }
+  };
+
   return (
     <div className="w-full space-y-6">
       {/* Header con logo y título */}
@@ -295,7 +355,7 @@ export const Pay = () => {
 
       {/* Modal de ayuda (fullscreen limpio) */}
       {isHelpOpen && (
-        <div className="fixed inset-0 z-50 bg-black/90">
+        <div className="fixed inset-0 z-50 bg-black/90 relative">
           <button
             onClick={() => setIsHelpOpen(false)}
             aria-label="Cerrar"
@@ -310,6 +370,14 @@ export const Pay = () => {
             allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
           />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
+            <button
+              onClick={handleOpenLemon}
+              className="pointer-events-auto w-full h-14 rounded-full bg-[#00F068] text-black font-semibold text-base flex items-center justify-center shadow-lg hover:bg-[#06e060] active:bg-[#05c955]"
+            >
+              Abrir app de Lemon
+            </button>
+          </div>
         </div>
       )}
     </div>

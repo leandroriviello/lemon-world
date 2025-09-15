@@ -31,6 +31,11 @@ This starter kit uses [Mini Apps UI Kit](https://github.com/worldcoin/mini-apps-
 - Ensure your production domain is added in the World App Dev Portal for your App ID and that Allowed Origins include your domain.
 - Docs: https://docs.world.org/mini-apps
 
+### Optional deeplink fallbacks
+- `NEXT_PUBLIC_LEMON_FALLBACK_URL` (default `https://lemon.me`)
+- `NEXT_PUBLIC_LEMON_IOS_STORE_URL` (default `https://apps.apple.com/co/app/lemon-cash-tu-wallet-crypto/id1499421511`)
+- `NEXT_PUBLIC_LEMON_ANDROID_STORE_URL` (default `https://play.google.com/store/apps/details?id=com.applemoncash`)
+
 ## Eruda
 
 [Eruda](https://github.com/liriliri/eruda) is a tool that allows you to inspect the console while building as a mini app. You should disable this in production.
