@@ -11,7 +11,7 @@ type Prices = {
   cop?: number;
 };
 
-export const Calc = () => {
+export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
   const [amountWLD, setAmountWLD] = useState<string>('');
   const [vs, setVs] = useState<Vs>('usdt');
   const [prices, setPrices] = useState<Prices | null>(null);
@@ -60,9 +60,11 @@ export const Calc = () => {
   return (
     <div className="w-full space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3 justify-center">
-        <h1 className="text-xl font-bold text-foreground">Calculadora</h1>
-      </div>
+      {!hideHeader && (
+        <div className="flex items-center gap-3 justify-center">
+          <h1 className="text-xl font-bold text-foreground">Calculadora</h1>
+        </div>
+      )}
 
       {/* Card - Liquid Glass */}
       <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 space-y-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_30px_rgba(0,0,0,0.45)]">

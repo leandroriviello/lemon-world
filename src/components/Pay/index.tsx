@@ -21,7 +21,7 @@ type PayResult = {
   finalPayload: PayFinalPayload;
 };
 
-export const Pay = () => {
+export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
   const [amount, setAmount] = useState('');
   const [address, setAddress] = useState<string>("");
   const [btnState, setBtnState] = useState<ButtonState>(undefined);
@@ -95,9 +95,21 @@ export const Pay = () => {
         description: `Envío WLD`,
       };
 
+      // Haptic feedback justo antes de abrir el sheet de World App
+      const triggerHapticLight = () => {
+        try {
+          const anyWin = typeof window !== 'undefined' ? (window as any) : undefined;
+          if (anyWin?.navigator?.vibrate) anyWin.navigator.vibrate(15);
+          const mk = anyWin?.MiniKit as any;
+          if (mk?.commandsAsync?.haptics) mk.commandsAsync.haptics({ intensity: 'light' }).catch(() => {});
+          else if (mk?.commandsAsync?.vibrate) mk.commandsAsync.vibrate({ duration: 10 }).catch(() => {});
+        } catch {}
+      };
+
       let result: PayResult;
       try {
         if (isMock) throw new Error("force-mock");
+        triggerHapticLight();
         result = (await MiniKit.commandsAsync.pay(payload)) as PayResult;
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
@@ -244,10 +256,12 @@ export const Pay = () => {
   return (
     <div className="w-full space-y-6">
       {/* Header con logo y título */}
-      <div className="flex items-center gap-3 justify-center">
-        <LemonIcon className="w-8 h-8" />
-        <h1 className="text-xl font-bold text-foreground">Enviar WLD a Lemon</h1>
-      </div>
+      {!hideHeader && (
+        <div className="flex items-center gap-3 justify-center">
+          <LemonIcon className="w-8 h-8" />
+          <h1 className="text-xl font-bold text-foreground">Enviar WLD a Lemon</h1>
+        </div>
+      )}
 
       {/* Card contenedora - estilo Liquid Glass */}
       <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 space-y-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_30px_rgba(0,0,0,0.45)]">
@@ -277,7 +291,7 @@ export const Pay = () => {
             if (addressError) setAddressError("");
           }}
           disabled={disabled}
-          className="w-full h-12 pr-20 pl-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FFD100] focus:border-[#FFD100] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+          className="focus-pulse w-full h-12 pr-20 pl-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FFD100] focus:border-[#FFD100] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
           />
             <button
               type="button"
@@ -315,7 +329,7 @@ export const Pay = () => {
             disabled={disabled}
             min="0"
             step="0.01"
-            className="w-full h-12 px-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FFD100] focus:border-[#FFD100] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+            className="focus-pulse w-full h-12 px-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FFD100] focus:border-[#FFD100] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
           />
           {amountError && (
             <p className="text-sm text-red-400" aria-live="polite">{amountError}</p>
@@ -343,7 +357,7 @@ export const Pay = () => {
             disabled={disabled}
             size="lg"
             variant="primary"
-            className="relative overflow-hidden w-full h-14 rounded-full text-black text-base font-semibold flex items-center justify-center gap-2
+            className="btn-sheen relative overflow-hidden w-full h-14 rounded-full text-black text-base font-semibold flex items-center justify-center gap-2
                        bg-[linear-gradient(180deg,#FFE566_0%,#FFD100_55%,#E6B800_100%)]
                        ring-1 ring-black/5
                        shadow-[0_10px_30px_rgba(255,209,0,0.35),inset_0_1px_0_rgba(255,255,255,0.7)]
