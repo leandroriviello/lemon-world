@@ -42,11 +42,6 @@ export function useToast() {
     [addToast],
   )
 
-  // Predefined error messages
-  const showTagNotFound = useCallback(() => {
-    showError("No encontramos ese lemontag")
-  }, [showError])
-
   const showServiceUnavailable = useCallback(() => {
     showError("Servicio no disponible")
   }, [showError])
@@ -66,7 +61,6 @@ export function useToast() {
     showError,
     showSuccess,
     showInfo,
-    showTagNotFound,
     showServiceUnavailable,
     showPaymentCancelled,
     showGenericError,

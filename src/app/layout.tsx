@@ -16,7 +16,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <html lang="es" className="dark">
+    <html lang="es">
       <body>
         {children}
         <SpeedInsights />
