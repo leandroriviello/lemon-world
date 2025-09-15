@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { MiniKit } from "@worldcoin/minikit-js";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import ClientProviders from "@/providers";
+import { LanguageProvider, useLanguage } from "@/providers/Language";
 import "./globals.css";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -20,12 +21,24 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="es" className="dark">
       <body className="bg-background text-foreground min-h-dvh">
         <ClientProviders session={null}>
-          <div className="min-h-dvh w-full flex items-center justify-center px-4 py-6">
-            <div className="w-full max-w-md">{children}</div>
-          </div>
+          <LanguageProvider>
+            <div className="min-h-dvh w-full flex items-center justify-center px-4 py-6">
+              <div className="w-full max-w-md">{children}</div>
+            </div>
+            <FooterDisclaimer />
+          </LanguageProvider>
         </ClientProviders>
         <SpeedInsights />
       </body>
     </html>
+  );
+}
+
+function FooterDisclaimer() {
+  const { t } = useLanguage();
+  return (
+    <div className="w-full text-center text-[11px] text-white/40 pb-3">
+      {t('footer')}
+    </div>
   );
 }

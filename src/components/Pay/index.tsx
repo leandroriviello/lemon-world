@@ -7,6 +7,7 @@ import { useMiniKit } from '@worldcoin/minikit-js/minikit-provider';
 import { isAddress } from 'viem';
 import Toast from "@/components/lemon/Toast";
 import { useToast } from "@/components/lemon/useToast";
+import { useLanguage } from "@/providers/Language";
 import { LemonIcon } from './LemonIcon';
 
 type ButtonState = "resolviendo" | "pagando" | "verificando" | "success" | undefined;
@@ -33,6 +34,7 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
   const { isInstalled } = useMiniKit();
   const [addressError, setAddressError] = useState<string>("");
   const [amountError, setAmountError] = useState<string>("");
+  const { t } = useLanguage();
 
   useEffect(() => {
     setPortalReady(true);
@@ -40,8 +42,8 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
 
   const validateAddress = (value: string) => {
     const v = value.trim();
-    if (!v) return "Ingresá una dirección";
-    if (!/^0x[0-9a-fA-F]{40}$/.test(v)) return "Formato inválido";
+    if (!v) return t('errEnterAddress');
+    if (!/^0x[0-9a-fA-F]{40}$/.test(v)) return t('errInvalidFormat');
     const body = v.slice(2);
     const hasLower = /[a-f]/.test(body);
     const hasUpper = /[A-F]/.test(body);
@@ -53,9 +55,9 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
   };
 
   const validateAmount = (value: string) => {
-    if (!value) return "Ingresá un monto";
+    if (!value) return t('errEnterAmount');
     const n = Number(value);
-    if (Number.isNaN(n) || n <= 0) return "Monto inválido";
+    if (Number.isNaN(n) || n <= 0) return t('errAmountInvalid');
     return "";
   };
 
@@ -72,7 +74,7 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
 
       // 0) Verificar MiniKit instalado
       if (!isInstalled) {
-        showError("Abrí esta mini app dentro de World App");
+        showError(t('hintWorldApp'));
         return;
       }
 
@@ -80,7 +82,7 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
       setBtnState("pagando");
       const r2 = await fetch("/api/initiate-payment", { method: "POST" });
       if (!r2.ok) {
-        showError("Servicio no disponible (init)");
+        showError(t('serviceInitDown'));
         setBtnState(undefined);
         return;
       }
@@ -98,7 +100,7 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
             token_amount: tokenToDecimals(num, Tokens.WLD).toString(),
           },
         ],
-        description: `Envío WLD`,
+        description: t('sendWLD'),
       };
 
       // Haptic feedback justo antes de abrir el sheet de World App
@@ -149,7 +151,7 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
 
       if (conf?.success) {
         setBtnState("success");
-        showSuccess(`¡Listo! Enviaste ${num} WLD`);
+        showSuccess(t('sentOk', { n: num }));
         // Haptic de éxito
         try {
           type NavigatorWithVibrate = Navigator & { vibrate?: (pattern: number | number[]) => boolean };
@@ -160,16 +162,16 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
           await mk.commandsAsync?.haptics?.({ intensity: 'medium' });
         } catch {}
       } else {
-        showError("No pudimos confirmar la transacción");
+        showError(t('cannotConfirm'));
         setBtnState(undefined);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.toLowerCase().includes("cancel")) {
-        showError("Pago cancelado");
+        showError(t('cancelled'));
       } else {
         console.error(err);
-        showError("Algo salió mal");
+        showError(t('genericError'));
       }
       setBtnState(undefined);
     }
@@ -177,10 +179,10 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
 
   const getButtonText = () => {
     switch (btnState) {
-      case "pagando": return "Pagando...";
-      case "verificando": return "Verificando...";
-      case "success": return "¡Enviado!";
-      default: return "Enviar WLD";
+      case "pagando": return t('paying');
+      case "verificando": return t('verifying');
+      case "success": return t('sent');
+      default: return t('sendWLD');
     }
   };
 
@@ -191,7 +193,7 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
       const text = await navigator.clipboard.readText();
       if (text) setAddress(text.trim());
     } catch {
-      showError("No pudimos leer el portapapeles");
+      showError(t('cannotClipboard'));
     }
   };
 
@@ -201,11 +203,11 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
   const canShowButton = addressValid && amountValid && isInstalled;
 
   const getHint = () => {
-    if (!isInstalled) return "Abrí esta mini app desde World App para enviar WLD.";
+    if (!isInstalled) return t('hintWorldApp');
     const trimmed = address.trim();
-    if (!trimmed) return "Pegá la dirección de wallet (0x...)";
+    if (!trimmed) return t('hintPasteAddress');
     if (!addressValid) return validateAddress(trimmed);
-    if (!amount) return "Ingresá el monto en WLD";
+    if (!amount) return t('hintEnterAmount');
     if (!amountValid) return validateAmount(amount);
     return "";
   };
@@ -229,7 +231,7 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
       setTimeout(() => {
         document.removeEventListener('visibilitychange', onVis);
         if (!didHide) {
-          showInfo('No se detectó la app. Abriendo la tienda...');
+          showInfo(t('deeplinkStore'));
           if (isAndroid) {
             // 1) Intento abrir Play Store app vía market://
             let pkg = 'com.applemoncash';
@@ -276,7 +278,7 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
       {!hideHeader && (
         <div className="flex items-center gap-3 justify-center">
           <LemonIcon className="w-8 h-8" />
-          <h1 className="text-xl font-bold text-foreground">Enviar WLD a Lemon</h1>
+        <h1 className="text-xl font-bold text-foreground">{t('titleSend')}</h1>
         </div>
       )}
 
@@ -286,21 +288,21 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium text-foreground">
-              Dirección de wallet
+              {t('walletAddress')}
               <button
                 type="button"
                 onClick={() => setIsHelpOpen(true)}
                 className="ml-2 text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors"
                 aria-label="Instructivo aquí"
               >
-                (instructivo aquí)
+                {t('instructionHere')}
               </button>
             </label>
           </div>
       <div className="relative">
         <input
           type="text"
-          placeholder="0x..."
+              placeholder={t('placeholderAddress')}
           value={address}
           ref={addressInputRef}
           onChange={(e) => {
@@ -322,7 +324,7 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
                          active:scale-[0.98]
                          focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50"
             >
-              Pegar
+              {t('paste')}
             </button>
           </div>
           {addressError && (
@@ -333,11 +335,11 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
         {/* Campo monto */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">
-            Monto (WLD)
+            {t('amountWLD')}
           </label>
           <input
             type="number"
-            placeholder="Monto en WLD"
+            placeholder={t('placeholderAmount')}
             value={amount}
             onChange={(e) => {
               setAmount(e.target.value);
@@ -355,7 +357,7 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
 
         {/* Información de balance */}
         <div className="text-sm text-muted-foreground">
-          Disponible en tu wallet: —
+          {t('available')}
         </div>
         {/* Área del botón / hint para evitar saltos de layout */}
         {!canShowButton && (
@@ -413,7 +415,7 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
             className="absolute right-4 z-[10000] rounded-full bg-white/20 hover:bg-white/30 text-white px-4 py-2 text-base md:text-lg"
             style={{ top: `calc(env(safe-area-inset-top, 0px) + 16px)` }}
           >
-            ✕ Cerrar
+            ✕ {t('close')}
           </button>
           <div
             className="relative w-full mx-auto"
@@ -442,7 +444,7 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
                          shadow-[0_10px_30px_rgba(0,240,104,0.35),inset_0_1px_0_rgba(255,255,255,0.7)]
                          transition-[transform,box-shadow] duration-200 hover:shadow-[0_14px_34px_rgba(0,240,104,0.45),inset_0_1px_0_rgba(255,255,255,0.9)] active:scale-[0.98]"
             >
-              Abrir app de Lemon
+              {t('openLemon')}
             </button>
           </div>
         </div>,

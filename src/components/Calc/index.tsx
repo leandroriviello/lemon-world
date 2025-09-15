@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useLanguage } from '@/providers/Language';
 
 type Vs = 'usdt' | 'ars' | 'cop';
 
@@ -17,6 +18,7 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
   const [prices, setPrices] = useState<Prices | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const { t } = useLanguage();
 
   const fetchPrices = async () => {
     try {
@@ -25,7 +27,7 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
       // Coingecko simple price
       const url = 'https://api.coingecko.com/api/v3/simple/price?ids=worldcoin-wld&vs_currencies=usd,usdt,ars,cop';
       const res = await fetch(url, { cache: 'no-store' });
-      if (!res.ok) throw new Error('No pudimos obtener precios');
+      if (!res.ok) throw new Error('prices');
       const json = await res.json();
       const p = json?.['worldcoin-wld'] || {};
       setPrices({
@@ -36,7 +38,7 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
       });
     } catch (e) {
       console.error(e);
-      setError('No pudimos cargar precios (Coingecko)');
+      setError('coingecko');
     } finally {
       setLoading(false);
     }
@@ -62,7 +64,7 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
       {/* Header */}
       {!hideHeader && (
         <div className="flex items-center gap-3 justify-center">
-          <h1 className="text-xl font-bold text-foreground">Calculadora</h1>
+          <h1 className="text-xl font-bold text-foreground">{t('titleCalc')}</h1>
         </div>
       )}
 
@@ -70,13 +72,11 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
       <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 space-y-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_30px_rgba(0,0,0,0.45)]">
         {/* Input WLD */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">
-            Monto en WLD
-          </label>
+          <label className="text-sm font-medium text-foreground">{t('calcAmount')}</label>
           <input
             type="number"
             inputMode="decimal"
-            placeholder="Ej: 1.5"
+            placeholder="1.5"
             value={amountWLD}
             onChange={(e) => setAmountWLD(e.target.value)}
             min="0"
@@ -88,9 +88,7 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
         {/* Output con selector de moneda */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-foreground">
-              Recibís aproximado
-            </label>
+            <label className="text-sm font-medium text-foreground">{t('calcReceive')}</label>
             <div className="inline-flex rounded-full overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
               {(['usdt','ars','cop'] as Vs[]).map((k) => (
                 <button
@@ -114,7 +112,7 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
               type="text"
               value={converted}
               readOnly
-              placeholder={loading ? 'Cargando precios…' : (error || '0')}
+              placeholder={loading ? '...' : (error ? '—' : '0')}
               className="w-full h-12 pr-24 pl-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-foreground placeholder:text-muted-foreground focus:outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
             />
             <span className="absolute inset-y-0 right-3 my-auto h-7 inline-flex items-center text-sm text-muted-foreground">
@@ -122,11 +120,10 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
             </span>
           </div>
         </div>
-
-        <p className="text-xs text-muted-foreground">*IMPORTANTE: Los valores son estimados.</p>
+        <p className="text-xs text-muted-foreground">{t('calcImportant')}</p>
 
         {error && (
-          <div className="text-sm text-red-400">{error}</div>
+          <div className="text-sm text-red-400">{error === 'coingecko' ? 'Coingecko error' : error}</div>
         )}
       </div>
     </div>

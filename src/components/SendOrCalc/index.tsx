@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { MiniKit } from '@worldcoin/minikit-js';
 import { Pay } from '@/components/Pay';
 import { Calc } from '@/components/Calc';
+import { LanguageToggle } from '@/components/LanguageToggle';
+import { useLanguage } from '@/providers/Language';
 
 type View = 'send' | 'calc';
 
@@ -15,6 +17,7 @@ export const SendOrCalc = () => {
   const sendRef = useRef<HTMLDivElement | null>(null);
   const calcRef = useRef<HTMLDivElement | null>(null);
   const [containerHeight, setContainerHeight] = useState<number | undefined>(undefined);
+  const { t } = useLanguage();
 
   const triggerHaptic = () => {
     try {
@@ -97,22 +100,25 @@ export const SendOrCalc = () => {
           <div className="relative grid grid-cols-2 h-full">
             <button
               type="button"
-            onClick={() => { setView('send'); triggerHaptic(); }}
+              onClick={() => { setView('send'); triggerHaptic(); }}
               className={`z-10 font-semibold text-sm transition-colors ${
                 view === 'send' ? 'text-black' : 'text-white'
               }`}
             >
-              ENVIAR
+              {t('send')}
             </button>
             <button
               type="button"
-            onClick={() => { setView('calc'); triggerHaptic(); }}
+              onClick={() => { setView('calc'); triggerHaptic(); }}
               className={`z-10 font-semibold text-sm transition-colors ${
                 view === 'calc' ? 'text-black' : 'text-white'
               }`}
             >
-              CALCULADORA
+              {t('calculator')}
             </button>
+          </div>
+          <div className="absolute right-0 top-[-6px] h-10 w-[160px]">
+            <LanguageToggle />
           </div>
         </div>
       </div>
@@ -120,7 +126,7 @@ export const SendOrCalc = () => {
       {/* Title area with fixed height and crossfade */}
       <div className="h-10 flex items-center justify-center overflow-hidden">
         <h1 key={view} className="fade-in-up text-xl font-bold text-foreground">
-          {view === 'send' ? 'Enviar WLD a Lemon' : 'Calculadora'}
+          {view === 'send' ? t('titleSend') : t('titleCalc')}
         </h1>
       </div>
 
