@@ -16,9 +16,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <html lang="es">
-      <body>
-        {children}
+    <html lang="es" className="dark">
+      <body className="bg-background text-foreground min-h-dvh">
+        <div className="min-h-dvh w-full flex items-center justify-center px-4 py-6">
+          <div className="w-full max-w-md">{children}</div>
+        </div>
         <SpeedInsights />
       </body>
     </html>

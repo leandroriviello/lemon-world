@@ -139,10 +139,13 @@ export const Pay = () => {
     }
   };
 
+  const overlayState = getButtonState();
+  const hideButtonLabel = overlayState !== undefined; // oculta texto cuando LiveFeedback muestra overlay
+
   return (
-    <div className="w-full max-w-md mx-auto space-y-6">
+    <div className="w-full space-y-6">
       {/* Header con logo y título */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 justify-center">
         <LemonIcon className="w-8 h-8" />
         <h1 className="text-xl font-bold text-foreground">Enviar WLD a Lemon</h1>
       </div>
@@ -171,13 +174,13 @@ export const Pay = () => {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               disabled={disabled}
-              className="w-full h-12 pr-20 pl-4 bg-secondary border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full h-12 pr-20 pl-4 bg-black/30 border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FFD100] focus:border-[#FFD100] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             />
             <button
               type="button"
               onClick={handlePaste}
               disabled={disabled}
-              className="absolute inset-y-0 right-2 my-2 px-3 text-sm rounded-md bg-muted text-foreground hover:bg-muted/80 disabled:opacity-50"
+              className="absolute inset-y-0 right-2 my-2 px-3 text-sm rounded-md bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-50"
             >
               Pegar
             </button>
@@ -197,7 +200,7 @@ export const Pay = () => {
             disabled={disabled}
             min="0"
             step="0.01"
-            className="w-full h-12 px-4 bg-secondary border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full h-12 px-4 bg-black/30 border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FFD100] focus:border-[#FFD100] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           />
         </div>
 
@@ -220,9 +223,9 @@ export const Pay = () => {
             disabled={disabled}
             size="lg"
             variant="primary"
-            className="w-full"
+            className="w-full bg-[#FFD100] text-black hover:bg-[#ffcc00] active:bg-[#e6b800] disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {getButtonText()}
+            <span className={hideButtonLabel ? "opacity-0" : ""}>{getButtonText()}</span>
           </Button>
         </LiveFeedback>
 
