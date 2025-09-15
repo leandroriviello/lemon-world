@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { MiniKit, Tokens, tokenToDecimals } from "@worldcoin/minikit-js";
 import { Button } from '@worldcoin/mini-apps-ui-kit-react';
 import { useMiniKit } from '@worldcoin/minikit-js/minikit-provider';
@@ -26,6 +26,7 @@ export const Pay = () => {
   const [address, setAddress] = useState<string>("");
   const [btnState, setBtnState] = useState<ButtonState>(undefined);
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
+  const addressInputRef = useRef<HTMLInputElement | null>(null);
   const { toasts, showError, showSuccess, showInfo, removeToast } = useToast();
   const { isInstalled } = useMiniKit();
   const [addressError, setAddressError] = useState<string>("");
@@ -265,16 +266,17 @@ export const Pay = () => {
               </button>
             </label>
           </div>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="0x..."
-              value={address}
-              onChange={(e) => {
-                setAddress(e.target.value);
-                if (addressError) setAddressError("");
-              }}
-              disabled={disabled}
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="0x..."
+          value={address}
+          ref={addressInputRef}
+          onChange={(e) => {
+            setAddress(e.target.value);
+            if (addressError) setAddressError("");
+          }}
+          disabled={disabled}
               className="w-full h-12 pr-20 pl-4 bg-black/30 border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FFD100] focus:border-[#FFD100] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             />
             <button
@@ -344,10 +346,7 @@ export const Pay = () => {
           </Button>
         )}
 
-        {/* Mensaje de confirmación */}
-        <p className="text-center text-sm text-muted-foreground">
-          El envío se confirma dentro de World App
-        </p>
+        {/* Mensaje de confirmación quitado (World App muestra pop-up) */}
       </div>
 
       {/* Toast de estado */}
@@ -355,22 +354,36 @@ export const Pay = () => {
 
       {/* Modal de ayuda (fullscreen limpio) */}
       {isHelpOpen && (
-        <div className="fixed inset-0 z-50 bg-black/90 relative">
+        <div className="fixed inset-0 z-[9999] bg-black overflow-hidden">
           <button
-            onClick={() => setIsHelpOpen(false)}
+            onClick={() => {
+              setIsHelpOpen(false);
+              setTimeout(() => {
+                addressInputRef.current?.focus();
+                try {
+                  addressInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } catch {}
+              }, 50);
+            }}
             aria-label="Cerrar"
-            className="absolute top-4 right-4 z-50 rounded-full bg-white/20 hover:bg-white/30 text-white px-4 py-2 text-base md:text-lg"
+            className="absolute right-4 z-[10000] rounded-full bg-white/20 hover:bg-white/30 text-white px-4 py-2 text-base md:text-lg"
+            style={{ top: `calc(env(safe-area-inset-top, 0px) + 16px)` }}
           >
             ✕ Cerrar
           </button>
-          <iframe
-            src="https://www.youtube.com/embed/Fmywwu_YZfE?autoplay=1&mute=0&playsinline=1&modestbranding=1&rel=0&fs=1"
-            title="¿Qué es la dirección de wallet?"
-            className="w-full h-full"
-            allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
+          <div className="relative w-full h-full">
+            <iframe
+              src="https://www.youtube.com/embed/Fmywwu_YZfE?autoplay=1&mute=0&playsinline=1&modestbranding=1&rel=0&fs=1&controls=0"
+              title="¿Qué es la dirección de wallet?"
+              className="absolute inset-0 w-full h-full"
+              allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
+          <div
+            className="pointer-events-none absolute inset-x-0 p-4 bg-gradient-to-t from-black/70 to-transparent"
+            style={{ bottom: `calc(env(safe-area-inset-bottom, 0px))` }}
+          >
             <button
               onClick={handleOpenLemon}
               className="pointer-events-auto w-full h-14 rounded-full bg-[#00F068] text-black font-semibold text-base flex items-center justify-center shadow-lg hover:bg-[#06e060] active:bg-[#05c955]"
