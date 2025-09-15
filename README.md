@@ -1,28 +1,33 @@
-## Create a Mini App
+## Lemon World — Mini App (World App)
 
-[Mini apps](https://docs.worldcoin.org/mini-apps) enable third-party developers to create native-like applications within World App.
+Aplicación de envío de WLD y calculadora (USDT/ARS/COP), optimizada para correr dentro de World App como Mini App.
 
-This template is a way for you to quickly get started with authentication and examples of some of the trickier commands.
+### Funcionalidades
+- Enviar WLD: abre el formulario nativo en World App (MiniKit pay) con destino/monto precargados.
+- Instructivo con video fullscreen y CTA “Abrir app de Lemon” con deeplink y fallbacks.
+- Calculadora: convierte WLD a USDT, ARS o COP usando Coingecko. Valores estimados.
+- UI mobile, dark mode forzado, botones amarillos.
 
 ## Getting Started
 
-1. cp .env.sample .env.local
-2. Follow the instructions in the .env.local file
-3. Run `npm run dev`
-4. Run `ngrok http 3000`
-5. Run `npx auth secret` and paste it into `NEXTAUTH_SECRET` in `.env.local`
-6. [Optional] Add your dev origin to `allowedDevOrigins` in `next.config.ts`
-7. If using ngrok (dev), set `NEXTAUTH_URL` to your ngrok URL
-8. Continue to developer.worldcoin.org and make sure your app is connected to the right ngrok url
-9. [Optional] For Verify and Send Transaction to work you need to do some more setup in the dev portal. The steps are outlined in the respective component files.
+1. `cp .env.sample .env.local`
+2. Completar `.env.local` (ver sección Env).
+3. `npm install`
+4. `npm run dev`
+5. Exponer con `ngrok http 3000` (o similar) y configurar la URL en el Dev Portal de World App para tu `APP_ID`.
 
-## Authentication
+## Env vars
 
-This starter kit uses [Minikit's](https://github.com/worldcoin/minikit-js) wallet auth to authenticate users, and [next-auth](https://authjs.dev/getting-started) to manage sessions.
-
-## UI Library
-
-This starter kit uses [Mini Apps UI Kit](https://github.com/worldcoin/mini-apps-ui-kit) to style the app. We recommend using the UI kit to make sure you are compliant with [World App's design system](https://docs.world.org/mini-apps/design/app-guidelines).
+- `NEXT_PUBLIC_APP_ID`: App ID del Dev Portal de World App.
+- `NEXTAUTH_SECRET`: generar con `npx auth secret`.
+- `NEXTAUTH_URL`: URL pública (ngrok en dev, dominio en prod).
+- `HMAC_SECRET_KEY`: `openssl rand -base64 32`.
+- `NEXT_PUBLIC_APP_ENV`: `production` desactiva Eruda.
+- `NEXT_PUBLIC_MOCK`: `true` simula `pay` fuera de World App.
+- Deeplink fallbacks (opcionales):
+  - `NEXT_PUBLIC_LEMON_FALLBACK_URL` (default `https://lemon.me`)
+  - `NEXT_PUBLIC_LEMON_IOS_STORE_URL` (default App Store Lemon)
+  - `NEXT_PUBLIC_LEMON_ANDROID_STORE_URL` (default Play Store Lemon)
 
 ## Deploy
 
@@ -36,10 +41,18 @@ This starter kit uses [Mini Apps UI Kit](https://github.com/worldcoin/mini-apps-
 - `NEXT_PUBLIC_LEMON_IOS_STORE_URL` (default `https://apps.apple.com/co/app/lemon-cash-tu-wallet-crypto/id1499421511`)
 - `NEXT_PUBLIC_LEMON_ANDROID_STORE_URL` (default `https://play.google.com/store/apps/details?id=com.applemoncash`)
 
-## Eruda
+## Arquitectura
 
-[Eruda](https://github.com/liriliri/eruda) is a tool that allows you to inspect the console while building as a mini app. You should disable this in production.
+- `src/app/layout.tsx`: inicializa MiniKit (`MiniKit.install`) y wraps con providers.
+- `src/app/page.tsx`: toggle ENVIAR / CALCULADORA.
+- `src/components/SendOrCalc`: toggle superior y render condicional.
+- `src/components/Pay`: formulario de envío con validación EIP‑55, “Pegar”, instructivo y botón amarillo.
+- `src/components/Calc`: conversor WLD -> USDT/ARS/COP via Coingecko.
+- `src/app/api/initiate-payment`: referencia local.
+- `src/app/api/confirm-payment`: mock de confirmación.
 
-## Contributing
+## Notas
 
-This template was made with help from the amazing [supercorp-ai](https://github.com/supercorp-ai) team.
+- El `pay` abre el sheet de World App solo dentro de la app. Fuera de World App se deshabilita con hint, o se puede usar `NEXT_PUBLIC_MOCK=true` para pruebas.
+- Instructivo: video a pantalla completa, botón para abrir Lemon con deeplink; si no se detecta la app, abre tienda (market:// en Android o URL web) o `lemon.me`.
+- Calculadora: se actualiza cada 60s. Si `usdt` no estuviera disponible, se usa `usd` como aproximación.

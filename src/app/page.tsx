@@ -1,7 +1,7 @@
 "use client";
 
-import { Pay } from "@/components/Pay";
+import { SendOrCalc } from "@/components/SendOrCalc";
 
 export default function Page() {
-  return <Pay />;
+  return <SendOrCalc />;
 }
