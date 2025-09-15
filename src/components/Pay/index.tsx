@@ -249,8 +249,8 @@ export const Pay = () => {
         <h1 className="text-xl font-bold text-foreground">Enviar WLD a Lemon</h1>
       </div>
 
-      {/* Card contenedora */}
-      <div className="rounded-2xl border border-border bg-card/90 backdrop-blur p-6 shadow-xl space-y-6">
+      {/* Card contenedora - estilo Liquid Glass */}
+      <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 space-y-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_30px_rgba(0,0,0,0.45)]">
         {/* Campo dirección de wallet */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -277,13 +277,19 @@ export const Pay = () => {
             if (addressError) setAddressError("");
           }}
           disabled={disabled}
-              className="w-full h-12 pr-20 pl-4 bg-black/30 border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FFD100] focus:border-[#FFD100] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            />
+          className="w-full h-12 pr-20 pl-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FFD100] focus:border-[#FFD100] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+          />
             <button
               type="button"
               onClick={handlePaste}
               disabled={disabled}
-              className="absolute inset-y-0 right-2 my-2 px-3 text-sm rounded-md bg-zinc-800 text-white hover:bg-zinc-700 disabled:opacity-50"
+              className="absolute inset-y-0 right-2 my-2 px-3 text-sm rounded-xl text-white
+                         bg-white/10 backdrop-blur-sm border border-white/10
+                         transition-all duration-200
+                         hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.28)_0%,rgba(255,255,255,0.12)_100%)]
+                         hover:shadow-[0_6px_18px_rgba(255,255,255,0.15)]
+                         active:scale-[0.98]
+                         focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50"
             >
               Pegar
             </button>
@@ -309,7 +315,7 @@ export const Pay = () => {
             disabled={disabled}
             min="0"
             step="0.01"
-            className="w-full h-12 px-4 bg-black/30 border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FFD100] focus:border-[#FFD100] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full h-12 px-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FFD100] focus:border-[#FFD100] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
           />
           {amountError && (
             <p className="text-sm text-red-400" aria-live="polite">{amountError}</p>
@@ -337,7 +343,14 @@ export const Pay = () => {
             disabled={disabled}
             size="lg"
             variant="primary"
-            className="w-full h-14 rounded-full bg-[#FFD100] text-black hover:bg-[#ffcc00] active:bg-[#e6b800] disabled:opacity-60 disabled:cursor-not-allowed text-base font-semibold flex items-center justify-center gap-2"
+            className="relative overflow-hidden w-full h-14 rounded-full text-black text-base font-semibold flex items-center justify-center gap-2
+                       bg-[linear-gradient(180deg,#FFE566_0%,#FFD100_55%,#E6B800_100%)]
+                       ring-1 ring-black/5
+                       shadow-[0_10px_30px_rgba(255,209,0,0.35),inset_0_1px_0_rgba(255,255,255,0.7)]
+                       transition-[transform,box-shadow] duration-200
+                       hover:shadow-[0_14px_34px_rgba(255,209,0,0.45),inset_0_1px_0_rgba(255,255,255,0.9)]
+                       active:scale-[0.98]
+                       focus:ring-4 focus:ring-[#FFD100]/30 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isPending && (
               <span className="inline-block h-5 w-5 rounded-full border-2 border-black/40 border-t-black animate-spin" aria-hidden />
@@ -371,7 +384,13 @@ export const Pay = () => {
           >
             ✕ Cerrar
           </button>
-          <div className="relative w-full h-full">
+          <div
+            className="relative w-full mx-auto"
+            style={{
+              height: 'calc(100dvh - (env(safe-area-inset-top, 0px) + 64px) - (env(safe-area-inset-bottom, 0px) + 112px))',
+              marginTop: 'calc(env(safe-area-inset-top, 0px) + 48px)'
+            }}
+          >
             <iframe
               src="https://www.youtube.com/embed/Fmywwu_YZfE?autoplay=1&mute=0&playsinline=1&modestbranding=1&rel=0&fs=1&controls=0"
               title="¿Qué es la dirección de wallet?"
@@ -386,7 +405,11 @@ export const Pay = () => {
           >
             <button
               onClick={handleOpenLemon}
-              className="pointer-events-auto w-full h-14 rounded-full bg-[#00F068] text-black font-semibold text-base flex items-center justify-center shadow-lg hover:bg-[#06e060] active:bg-[#05c955]"
+              className="pointer-events-auto w-full h-14 rounded-full text-black font-semibold text-base flex items-center justify-center
+                         bg-[linear-gradient(180deg,#5CFFAA_0%,#00F068_55%,#00D65C_100%)]
+                         ring-1 ring-black/5
+                         shadow-[0_10px_30px_rgba(0,240,104,0.35),inset_0_1px_0_rgba(255,255,255,0.7)]
+                         transition-[transform,box-shadow] duration-200 hover:shadow-[0_14px_34px_rgba(0,240,104,0.45),inset_0_1px_0_rgba(255,255,255,0.9)] active:scale-[0.98]"
             >
               Abrir app de Lemon
             </button>

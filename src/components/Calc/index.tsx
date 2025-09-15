@@ -64,8 +64,8 @@ export const Calc = () => {
         <h1 className="text-xl font-bold text-foreground">Calculadora</h1>
       </div>
 
-      {/* Card */}
-      <div className="rounded-2xl border border-border bg-card/90 backdrop-blur p-6 shadow-xl space-y-6">
+      {/* Card - Liquid Glass */}
+      <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 space-y-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_30px_rgba(0,0,0,0.45)]">
         {/* Input WLD */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">
@@ -79,7 +79,7 @@ export const Calc = () => {
             onChange={(e) => setAmountWLD(e.target.value)}
             min="0"
             step="0.0001"
-            className="w-full h-12 px-4 bg-black/30 border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FFD100] focus:border-[#FFD100] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full h-12 px-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FFD100] focus:border-[#FFD100] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
           />
         </div>
 
@@ -89,14 +89,16 @@ export const Calc = () => {
             <label className="text-sm font-medium text-foreground">
               Recibís aproximado
             </label>
-            <div className="inline-flex rounded-md overflow-hidden border border-input">
+            <div className="inline-flex rounded-full overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
               {(['usdt','ars','cop'] as Vs[]).map((k) => (
                 <button
                   key={k}
                   type="button"
                   onClick={() => setVs(k)}
-                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-                    vs === k ? 'bg-[#FFD100] text-black' : 'bg-zinc-800 text-white hover:bg-zinc-700'
+                  className={`px-3 py-1.5 text-xs font-semibold transition-all rounded-full ${
+                    vs === k
+                      ? 'text-black bg-[linear-gradient(180deg,#FFE566_0%,#FFD100_55%,#E6B800_100%)] shadow-[0_8px_22px_rgba(255,209,0,0.35),inset_0_1px_0_rgba(255,255,255,0.7)] ring-1 ring-black/5'
+                      : 'text-white/85 bg-white/0 hover:bg-white/10 active:scale-[0.98]'
                   }`}
                 >
                   {k.toUpperCase()}
@@ -111,7 +113,7 @@ export const Calc = () => {
               value={converted}
               readOnly
               placeholder={loading ? 'Cargando precios…' : (error || '0')}
-              className="w-full h-12 pr-24 pl-4 bg-black/30 border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none"
+              className="w-full h-12 pr-24 pl-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-foreground placeholder:text-muted-foreground focus:outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
             />
             <span className="absolute inset-y-0 right-3 my-auto h-7 inline-flex items-center text-sm text-muted-foreground">
               {vs.toUpperCase()}
@@ -130,4 +132,3 @@ export const Calc = () => {
 };
 
 export default Calc;
-
