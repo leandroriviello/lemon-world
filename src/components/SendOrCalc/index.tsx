@@ -84,40 +84,44 @@ export const SendOrCalc = () => {
     >
       {/* Sticky segmented control */}
       <div className="sticky z-20" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}>
-        <div className="relative w-full h-14 rounded-full border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.3)] overflow-hidden">
-          {/* Sliding indicator */}
-          <div
-            key={view}
-            className={`absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] rounded-full transition-transform duration-300 ease-out
-                      ring-1 ring-black/5 shadow-[0_8px_22px_rgba(255,209,0,0.35),inset_0_1px_0_rgba(255,255,255,0.7)]
-                       ${view === 'send'
-                         ? 'bg-[linear-gradient(180deg,#FFE566_0%,#FFD100_55%,#E6B800_100%)] translate-x-0'
-                         : 'bg-[linear-gradient(180deg,#FFE566_0%,#FFD100_55%,#E6B800_100%)] translate-x-[calc(100%+0.25rem)]'
-                       } glow-pop`}
-            aria-hidden
-          />
-          {/* Buttons */}
-          <div className="relative grid grid-cols-2 h-full">
-            <button
-              type="button"
-              onClick={() => { setView('send'); triggerHaptic(); }}
-              className={`z-10 font-semibold text-sm transition-colors ${
-                view === 'send' ? 'text-black' : 'text-white'
-              }`}
-            >
-              {t('send')}
-            </button>
-            <button
-              type="button"
-              onClick={() => { setView('calc'); triggerHaptic(); }}
-              className={`z-10 font-semibold text-sm transition-colors ${
-                view === 'calc' ? 'text-black' : 'text-white'
-              }`}
-            >
-              {t('calculator')}
-            </button>
+        <div className="flex items-center gap-3">
+          {/* Segmented control (left) */}
+          <div className="relative flex-1 h-14 rounded-full border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.3)] overflow-hidden">
+            {/* Sliding indicator */}
+            <div
+              key={view}
+              className={`absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] rounded-full transition-transform duration-300 ease-out
+                        ring-1 ring-black/5 shadow-[0_8px_22px_rgba(255,209,0,0.35),inset_0_1px_0_rgba(255,255,255,0.7)]
+                         ${view === 'send'
+                           ? 'bg-[linear-gradient(180deg,#FFE566_0%,#FFD100_55%,#E6B800_100%)] translate-x-0'
+                           : 'bg-[linear-gradient(180deg,#FFE566_0%,#FFD100_55%,#E6B800_100%)] translate-x-[calc(100%+0.25rem)]'
+                         } glow-pop`}
+              aria-hidden
+            />
+            {/* Buttons */}
+            <div className="relative grid grid-cols-2 h-full">
+              <button
+                type="button"
+                onClick={() => { setView('send'); triggerHaptic(); }}
+                className={`z-10 font-semibold text-sm transition-colors ${
+                  view === 'send' ? 'text-black' : 'text-white'
+                }`}
+              >
+                {t('send')}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setView('calc'); triggerHaptic(); }}
+                className={`z-10 font-semibold text-sm transition-colors ${
+                  view === 'calc' ? 'text-black' : 'text-white'
+                }`}
+              >
+                {t('calculator')}
+              </button>
+            </div>
           </div>
-          <div className="absolute right-0 top-[-6px] h-10 w-[160px]">
+          {/* Language toggle (right) */}
+          <div className="shrink-0 w-[132px]">
             <LanguageToggle />
           </div>
         </div>

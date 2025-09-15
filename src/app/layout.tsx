@@ -22,10 +22,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="bg-background text-foreground min-h-dvh">
         <ClientProviders session={null}>
           <LanguageProvider>
-            <div className="min-h-dvh w-full flex items-center justify-center px-4 py-6">
-              <div className="w-full max-w-md">{children}</div>
+            <div className="min-h-dvh w-full flex flex-col items-center justify-start px-4 py-6">
+              <div className="w-full max-w-md">
+                {children}
+                <FooterDisclaimer />
+              </div>
             </div>
-            <FooterDisclaimer />
           </LanguageProvider>
         </ClientProviders>
         <SpeedInsights />
@@ -37,7 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 function FooterDisclaimer() {
   const { t } = useLanguage();
   return (
-    <div className="w-full text-center text-[11px] text-white/40 pb-3">
+    <div className="w-full text-center text-[11px] text-white/40 mt-6 pb-3">
       {t('footer')}
     </div>
   );
