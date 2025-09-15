@@ -1,5 +1,6 @@
 'use client';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { MiniKit, Tokens, tokenToDecimals } from "@worldcoin/minikit-js";
 import { Button } from '@worldcoin/mini-apps-ui-kit-react';
 import { useMiniKit } from '@worldcoin/minikit-js/minikit-provider';
@@ -27,10 +28,15 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
   const [btnState, setBtnState] = useState<ButtonState>(undefined);
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
   const addressInputRef = useRef<HTMLInputElement | null>(null);
+  const [portalReady, setPortalReady] = useState(false);
   const { toasts, showError, showSuccess, showInfo, removeToast } = useToast();
   const { isInstalled } = useMiniKit();
   const [addressError, setAddressError] = useState<string>("");
   const [amountError, setAmountError] = useState<string>("");
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
 
   const validateAddress = (value: string) => {
     const v = value.trim();
@@ -390,8 +396,8 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
       {/* Toast de estado */}
       <Toast toasts={toasts} removeToast={removeToast} />
 
-      {/* Modal de ayuda (fullscreen limpio) */}
-      {isHelpOpen && (
+      {/* Modal de ayuda (fullscreen limpio) via portal para evitar clipping por transform/overflow */}
+      {isHelpOpen && portalReady && createPortal(
         <div className="fixed inset-0 z-[9999] bg-black overflow-hidden">
           <button
             onClick={() => {
@@ -439,7 +445,8 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
               Abrir app de Lemon
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
