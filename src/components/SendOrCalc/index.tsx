@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MiniKit } from '@worldcoin/minikit-js';
 import { Pay } from '@/components/Pay';
 import { Calc } from '@/components/Calc';
@@ -11,6 +11,10 @@ export const SendOrCalc = () => {
   const [view, setView] = useState<View>('send');
   const sx = useRef<number | null>(null);
   const sy = useRef<number | null>(null);
+  const outerRef = useRef<HTMLDivElement | null>(null);
+  const sendRef = useRef<HTMLDivElement | null>(null);
+  const calcRef = useRef<HTMLDivElement | null>(null);
+  const [containerHeight, setContainerHeight] = useState<number | undefined>(undefined);
 
   const triggerHaptic = () => {
     try {
@@ -49,6 +53,25 @@ export const SendOrCalc = () => {
       triggerHaptic();
     }
   };
+
+  // Measure active panel height to avoid vertical jumps
+  const measure = () => {
+    const el = (view === 'send' ? sendRef.current : calcRef.current);
+    if (el) setContainerHeight(el.offsetHeight);
+  };
+  useEffect(() => {
+    measure();
+    const onResize = () => measure();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    // wait next paint for smoother height transition
+    const id = requestAnimationFrame(measure);
+    return () => cancelAnimationFrame(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view]);
 
   return (
     <div
@@ -101,7 +124,23 @@ export const SendOrCalc = () => {
         </h1>
       </div>
 
-      {view === 'send' ? <Pay hideHeader /> : <Calc hideHeader />}
+      <div
+        ref={outerRef}
+        className="relative overflow-hidden"
+        style={{ height: containerHeight ? `${containerHeight}px` : undefined, transition: 'height 250ms ease' }}
+      >
+        <div
+          className="flex w-[200%] transition-transform duration-300 ease-out will-change-transform"
+          style={{ transform: view === 'send' ? 'translateX(0%)' : 'translateX(-50%)' }}
+        >
+          <div ref={sendRef} className="w-1/2 px-0">
+            <Pay hideHeader />
+          </div>
+          <div ref={calcRef} className="w-1/2 px-0">
+            <Calc hideHeader />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
