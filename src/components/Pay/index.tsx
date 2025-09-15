@@ -166,7 +166,6 @@ export const Pay = () => {
   };
 
   const isPending = btnState === "pagando" || btnState === "verificando";
-  const hideButtonLabel = isPending;
   const addressValid = validateAddress(address.trim()) === "";
   const amountValid = validateAmount(amount) === "";
   const canShowButton = addressValid && amountValid && isInstalled;
