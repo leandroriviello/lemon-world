@@ -84,9 +84,10 @@ export const SendOrCalc = () => {
     >
       {/* Sticky segmented control */}
       <div className="sticky z-20" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}>
-        <div className="relative">
-          {/* Segmented control full width with right padding so it stays BIG */}
-          <div className="relative w-full pr-[148px] h-14 rounded-full border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.3)] overflow-hidden">
+        <div className="flex items-center gap-3">
+          {/* Segmented control big (takes all width except language toggle) */}
+          <div className="relative h-14 rounded-full border border-white/10 bg-white/5 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.3)] overflow-hidden"
+               style={{ width: 'calc(100% - 148px)' }}>
             {/* Sliding indicator */}
             <div
               key={view}
@@ -120,8 +121,8 @@ export const SendOrCalc = () => {
               </button>
             </div>
           </div>
-          {/* Language toggle (top-right, independent) */}
-          <div className="absolute right-0 top-[-6px] w-[132px] z-10">
+          {/* Language toggle (right) */}
+          <div className="w-[132px] shrink-0">
             <LanguageToggle />
           </div>
         </div>
