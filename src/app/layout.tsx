@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { MiniKit } from "@worldcoin/minikit-js";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import ClientProviders from "@/providers";
 import "./globals.css";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -18,9 +19,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es" className="dark">
       <body className="bg-background text-foreground min-h-dvh">
-        <div className="min-h-dvh w-full flex items-center justify-center px-4 py-6">
-          <div className="w-full max-w-md">{children}</div>
-        </div>
+        <ClientProviders session={null}>
+          <div className="min-h-dvh w-full flex items-center justify-center px-4 py-6">
+            <div className="w-full max-w-md">{children}</div>
+          </div>
+        </ClientProviders>
         <SpeedInsights />
       </body>
     </html>

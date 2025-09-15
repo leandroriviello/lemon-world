@@ -1,7 +1,9 @@
 'use client';
 import { useState } from 'react';
 import { MiniKit, Tokens, tokenToDecimals } from "@worldcoin/minikit-js";
-import { Button, LiveFeedback } from '@worldcoin/mini-apps-ui-kit-react';
+import { Button } from '@worldcoin/mini-apps-ui-kit-react';
+import { useMiniKit } from '@worldcoin/minikit-js/minikit-provider';
+import { isAddress } from 'viem';
 import Toast from "@/components/lemon/Toast";
 import { useToast } from "@/components/lemon/useToast";
 import { LemonIcon } from './LemonIcon';
@@ -25,15 +27,45 @@ export const Pay = () => {
   const [btnState, setBtnState] = useState<ButtonState>(undefined);
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
   const { toasts, showError, showSuccess, removeToast } = useToast();
+  const { isInstalled } = useMiniKit();
+  const [addressError, setAddressError] = useState<string>("");
+  const [amountError, setAmountError] = useState<string>("");
+
+  const validateAddress = (value: string) => {
+    const v = value.trim();
+    if (!v) return "Ingresá una dirección";
+    if (!/^0x[0-9a-fA-F]{40}$/.test(v)) return "Formato inválido";
+    const body = v.slice(2);
+    const hasLower = /[a-f]/.test(body);
+    const hasUpper = /[A-F]/.test(body);
+    if (hasLower && hasUpper) {
+      // Si es mixto, exigimos checksum EIP-55
+      if (!isAddress(v, { strict: true })) return "Checksum inválido";
+    }
+    return "";
+  };
+
+  const validateAmount = (value: string) => {
+    if (!value) return "Ingresá un monto";
+    const n = Number(value);
+    if (Number.isNaN(n) || n <= 0) return "Monto inválido";
+    return "";
+  };
 
   const onSubmit = async (): Promise<void> => {
     try {
       const toAddress = address.trim();
       const num = Number(amount);
-      
-      const looksLikeEth = toAddress.startsWith("0x") && toAddress.length === 42;
-      if (!looksLikeEth || Number.isNaN(num) || num <= 0) {
-        showError("Revisa la dirección y el monto");
+
+      const addrErr = validateAddress(toAddress);
+      const amtErr = validateAmount(amount);
+      setAddressError(addrErr);
+      setAmountError(amtErr);
+      if (addrErr || amtErr) return;
+
+      // 0) Verificar MiniKit instalado
+      if (!isInstalled) {
+        showError("Abrí esta mini app dentro de World App");
         return;
       }
 
@@ -68,7 +100,7 @@ export const Pay = () => {
         result = (await MiniKit.commandsAsync.pay(payload)) as PayResult;
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
-        if (isMock || msg.includes("unavailable") || msg.includes("not available")) {
+        if (isMock || /unavailable|not available|install/i.test(msg)) {
           // Fallback local/preview
           result = {
             finalPayload: {
@@ -122,12 +154,6 @@ export const Pay = () => {
     }
   };
 
-  const getButtonState = (): 'pending' | 'success' | 'failed' | undefined => {
-    if (btnState === "success") return 'success';
-    if (btnState === "pagando" || btnState === "verificando") return 'pending';
-    return undefined;
-  };
-
   const disabled = btnState === "pagando" || btnState === "verificando";
 
   const handlePaste = async () => {
@@ -139,8 +165,21 @@ export const Pay = () => {
     }
   };
 
-  const overlayState = getButtonState();
-  const hideButtonLabel = overlayState !== undefined; // oculta texto cuando LiveFeedback muestra overlay
+  const isPending = btnState === "pagando" || btnState === "verificando";
+  const hideButtonLabel = isPending;
+  const addressValid = validateAddress(address.trim()) === "";
+  const amountValid = validateAmount(amount) === "";
+  const canShowButton = addressValid && amountValid && isInstalled;
+
+  const getHint = () => {
+    if (!isInstalled) return "Abrí esta mini app desde World App para enviar WLD.";
+    const trimmed = address.trim();
+    if (!trimmed) return "Pegá la dirección de wallet (0x...)";
+    if (!addressValid) return validateAddress(trimmed);
+    if (!amount) return "Ingresá el monto en WLD";
+    if (!amountValid) return validateAmount(amount);
+    return "";
+  };
 
   return (
     <div className="w-full space-y-6">
@@ -172,7 +211,10 @@ export const Pay = () => {
               type="text"
               placeholder="0x..."
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(e) => {
+                setAddress(e.target.value);
+                if (addressError) setAddressError("");
+              }}
               disabled={disabled}
               className="w-full h-12 pr-20 pl-4 bg-black/30 border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FFD100] focus:border-[#FFD100] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             />
@@ -185,6 +227,9 @@ export const Pay = () => {
               Pegar
             </button>
           </div>
+          {addressError && (
+            <p className="text-sm text-red-400" aria-live="polite">{addressError}</p>
+          )}
         </div>
 
         {/* Campo monto */}
@@ -196,38 +241,49 @@ export const Pay = () => {
             type="number"
             placeholder="Monto en WLD"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => {
+              setAmount(e.target.value);
+              if (amountError) setAmountError("");
+            }}
             disabled={disabled}
             min="0"
             step="0.01"
             className="w-full h-12 px-4 bg-black/30 border border-input rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FFD100] focus:border-[#FFD100] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           />
+          {amountError && (
+            <p className="text-sm text-red-400" aria-live="polite">{amountError}</p>
+          )}
         </div>
 
         {/* Información de balance */}
         <div className="text-sm text-muted-foreground">
           Disponible en tu wallet: —
         </div>
+        {/* Área del botón / hint para evitar saltos de layout */}
+        {!canShowButton && (
+          <div
+            className="w-full h-14 rounded-full bg-zinc-800/50 text-zinc-400 text-base font-medium flex items-center justify-center"
+            aria-live="polite"
+          >
+            {getHint()}
+          </div>
+        )}
 
         {/* Botón de envío */}
-        <LiveFeedback
-          label={{
-            pending: getButtonText(),
-            success: "¡Enviado!",
-            failed: "Error en el envío",
-          }}
-          state={getButtonState()}
-        >
+        {canShowButton && (
           <Button
             onClick={onSubmit}
             disabled={disabled}
             size="lg"
             variant="primary"
-            className="w-full bg-[#FFD100] text-black hover:bg-[#ffcc00] active:bg-[#e6b800] disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full h-14 rounded-full bg-[#FFD100] text-black hover:bg-[#ffcc00] active:bg-[#e6b800] disabled:opacity-60 disabled:cursor-not-allowed text-base font-semibold flex items-center justify-center gap-2"
           >
-            <span className={hideButtonLabel ? "opacity-0" : ""}>{getButtonText()}</span>
+            {isPending && (
+              <span className="inline-block h-5 w-5 rounded-full border-2 border-black/40 border-t-black animate-spin" aria-hidden />
+            )}
+            <span>{getButtonText()}</span>
           </Button>
-        </LiveFeedback>
+        )}
 
         {/* Mensaje de confirmación */}
         <p className="text-center text-sm text-muted-foreground">
