@@ -26,7 +26,7 @@ export const Pay = () => {
   const [address, setAddress] = useState<string>("");
   const [btnState, setBtnState] = useState<ButtonState>(undefined);
   const [isHelpOpen, setIsHelpOpen] = useState<boolean>(false);
-  const { toasts, showError, showSuccess, removeToast } = useToast();
+  const { toasts, showError, showSuccess, showInfo, removeToast } = useToast();
   const { isInstalled } = useMiniKit();
   const [addressError, setAddressError] = useState<string>("");
   const [amountError, setAmountError] = useState<string>("");
