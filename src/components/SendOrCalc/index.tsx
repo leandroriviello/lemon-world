@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { MiniKit } from '@worldcoin/minikit-js';
 import { Pay } from '@/components/Pay';
 import { Calc } from '@/components/Calc';
 
@@ -13,17 +14,16 @@ export const SendOrCalc = () => {
 
   const triggerHaptic = () => {
     try {
-      const anyWin = typeof window !== 'undefined' ? (window as any) : undefined;
-      if (anyWin?.navigator?.vibrate) {
-        anyWin.navigator.vibrate(15);
+      type NavigatorWithVibrate = Navigator & { vibrate?: (pattern: number | number[]) => boolean };
+      const w = (typeof window !== 'undefined' ? window : undefined) as (Window & { navigator: NavigatorWithVibrate }) | undefined;
+      if (w?.navigator?.vibrate) {
+        w.navigator.vibrate(15);
         return;
       }
-      const mk = anyWin?.MiniKit as any;
-      if (mk?.commandsAsync?.haptics) {
-        mk.commandsAsync.haptics({ intensity: 'light' }).catch(() => {});
-      } else if (mk?.commandsAsync?.vibrate) {
-        mk.commandsAsync.vibrate({ duration: 10 }).catch(() => {});
-      }
+      type MKAsync = { commandsAsync?: { haptics?: (opts: { intensity: 'light' | 'medium' | 'heavy' }) => Promise<void>; vibrate?: (opts: { duration: number }) => Promise<void> } };
+      const mk = (MiniKit as unknown) as MKAsync;
+      mk.commandsAsync?.haptics?.({ intensity: 'light' }).catch(() => {});
+      mk.commandsAsync?.vibrate?.({ duration: 10 }).catch(() => {});
     } catch {}
   };
 

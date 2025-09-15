@@ -98,11 +98,13 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
       // Haptic feedback justo antes de abrir el sheet de World App
       const triggerHapticLight = () => {
         try {
-          const anyWin = typeof window !== 'undefined' ? (window as any) : undefined;
-          if (anyWin?.navigator?.vibrate) anyWin.navigator.vibrate(15);
-          const mk = anyWin?.MiniKit as any;
-          if (mk?.commandsAsync?.haptics) mk.commandsAsync.haptics({ intensity: 'light' }).catch(() => {});
-          else if (mk?.commandsAsync?.vibrate) mk.commandsAsync.vibrate({ duration: 10 }).catch(() => {});
+          type NavigatorWithVibrate = Navigator & { vibrate?: (pattern: number | number[]) => boolean };
+          const w = (typeof window !== 'undefined' ? window : undefined) as (Window & { navigator: NavigatorWithVibrate }) | undefined;
+          w?.navigator?.vibrate?.(15);
+          type MKAsync = { commandsAsync?: { haptics?: (opts: { intensity: 'light' | 'medium' | 'heavy' }) => Promise<void>; vibrate?: (opts: { duration: number }) => Promise<void> } };
+          const mk = (MiniKit as unknown) as MKAsync;
+          mk.commandsAsync?.haptics?.({ intensity: 'light' }).catch(() => {});
+          mk.commandsAsync?.vibrate?.({ duration: 10 }).catch(() => {});
         } catch {}
       };
 
@@ -142,6 +144,15 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
       if (conf?.success) {
         setBtnState("success");
         showSuccess(`¡Listo! Enviaste ${num} WLD`);
+        // Haptic de éxito
+        try {
+          type NavigatorWithVibrate = Navigator & { vibrate?: (pattern: number | number[]) => boolean };
+          const w = (typeof window !== 'undefined' ? window : undefined) as (Window & { navigator: NavigatorWithVibrate }) | undefined;
+          w?.navigator?.vibrate?.([10, 40, 10]);
+          type MKAsync = { commandsAsync?: { haptics?: (opts: { intensity: 'light' | 'medium' | 'heavy' }) => Promise<void> } };
+          const mk = (MiniKit as unknown) as MKAsync;
+          await mk.commandsAsync?.haptics?.({ intensity: 'medium' });
+        } catch {}
       } else {
         showError("No pudimos confirmar la transacción");
         setBtnState(undefined);
