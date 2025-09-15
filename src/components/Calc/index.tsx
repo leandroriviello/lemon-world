@@ -54,7 +54,7 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
   const converted = useMemo(() => {
     const rate = prices?.[vs];
     if (!rate) return '';
-    const val = parsedAmount * rate;
+    const val = parsedAmount * rate * 0.95; // -5% aprox comisiones
     // Formato compacto sin notación científica
     return new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(val);
   }, [parsedAmount, prices, vs]);

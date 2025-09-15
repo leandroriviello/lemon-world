@@ -85,7 +85,7 @@ export const SendOrCalc = () => {
       {/* Sticky segmented control */}
       <div className="sticky z-20" style={{ top: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}>
         {/* Language toggle on top-right */}
-        <div className="w-full flex justify-end mb-2">
+        <div className="w-full flex justify-end mb-4">
           <div className="w-[132px]"><LanguageToggle /></div>
         </div>
         {/* Big segmented control full width below */}
