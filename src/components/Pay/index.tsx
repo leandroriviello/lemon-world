@@ -412,8 +412,8 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
               }, 50);
             }}
             aria-label="Cerrar"
-            className="absolute right-4 z-[10000] rounded-full bg-white/20 hover:bg-white/30 text-white px-4 py-2 text-base md:text-lg"
-            style={{ top: `calc(env(safe-area-inset-top, 0px) + 16px)` }}
+            className="absolute right-6 top-6 z-[10000] rounded-full bg-white/20 hover:bg-white/30 text-white px-4 py-2 text-base md:text-lg transition-colors duration-200 shadow-lg"
+            style={{ top: `calc(env(safe-area-inset-top, 0px) + 24px)` }}
           >
             ✕ {t('close')}
           </button>

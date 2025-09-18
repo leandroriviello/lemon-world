@@ -43,7 +43,7 @@ const dict: Dict = {
     calcAmount: "Monto en WLD",
     calcReceive: "Recibís aproximado",
     calcImportant: "*IMPORTANTE: Los valores son estimados.",
-    footer: "Lemon World no tiene relación ni con Lemon ni con Worldcoin",
+    footer: "Lemon Planet no tiene relación ni con Lemon ni con Worldcoin",
   },
   en: {
     send: "SEND",
@@ -81,7 +81,7 @@ const dict: Dict = {
     calcAmount: "Amount in WLD",
     calcReceive: "You receive (approx)",
     calcImportant: "*IMPORTANT: Values are estimates.",
-    footer: "Lemon World is not affiliated with Lemon or Worldcoin",
+    footer: "Lemon Planet is not affiliated with Lemon or Worldcoin",
   },
   pt: {
     send: "ENVIAR",
@@ -119,7 +119,7 @@ const dict: Dict = {
     calcAmount: "Quantia em WLD",
     calcReceive: "Você recebe (aprox)",
     calcImportant: "*IMPORTANTE: Valores são estimativas.",
-    footer: "Lemon World não tem relação com Lemon nem com Worldcoin",
+    footer: "Lemon Planet não tem relação com Lemon nem com Worldcoin",
   },
 };
 

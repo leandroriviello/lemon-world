@@ -1,4 +1,4 @@
-## Lemon World — Mini App (World App)
+## Lemon Planet — Mini App (World App)
 
 Aplicación de envío de WLD y calculadora (USDT/ARS/COP), optimizada para correr dentro de World App como Mini App.
 
