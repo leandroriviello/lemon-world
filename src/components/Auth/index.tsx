@@ -56,7 +56,7 @@ export const Auth = ({ onAuthSuccess }: { onAuthSuccess?: () => void }) => {
     if (status === 'unauthenticated' && isInstalled && !isVerifying) {
       handleVerify();
     }
-  }, [status, isInstalled, isVerifying, handleVerify]);
+  }, [status, isInstalled, isVerifying]);
 
   if (status === 'loading') {
     return (
