@@ -63,14 +63,17 @@ export const Auth = ({ onAuthSuccess }: { onAuthSuccess?: () => void }) => {
     }
   }, [isInstalled, isVerifying, verificationLevel, showSuccess, showError, t, onAuthSuccess]);
 
-  // Auto-verify on mount if not authenticated
+  // Auto-verify on mount if not authenticated - SOLO UNA VEZ
+  const [hasAttemptedVerification, setHasAttemptedVerification] = useState(false);
+  
   useEffect(() => {
-    console.log('Auth useEffect triggered:', { status, isInstalled, isVerifying });
-    if (status === 'unauthenticated' && isInstalled && !isVerifying) {
+    console.log('Auth useEffect triggered:', { status, isInstalled, isVerifying, hasAttemptedVerification });
+    if (status === 'unauthenticated' && isInstalled && !isVerifying && !hasAttemptedVerification) {
       console.log('Starting auto-verification...');
+      setHasAttemptedVerification(true);
       handleVerify();
     }
-  }, [status, isInstalled, isVerifying]);
+  }, [status, isInstalled, isVerifying, hasAttemptedVerification]);
 
   if (status === 'loading') {
     return (
