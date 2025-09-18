@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 import { MiniKit, VerificationLevel } from '@worldcoin/minikit-js';
 import { Button, LiveFeedback } from '@worldcoin/mini-apps-ui-kit-react';
 import { useMiniKit } from '@worldcoin/minikit-js/minikit-provider';
@@ -49,6 +49,19 @@ export const Auth = ({ onAuthSuccess }: { onAuthSuccess?: () => void }) => {
       if (data.verifyRes?.success) {
         console.log('Verification successful!');
         showSuccess(t('authSuccess') || 'Autenticación exitosa');
+        
+        // Marcar la verificación como exitosa para evitar bucles
+        setVerificationSuccessful(true);
+        
+        // Actualizar la sesión para que NextAuth reconozca al usuario como autenticado
+        console.log('Updating session...');
+        await signIn('credentials', {
+          redirect: false,
+          nonce: 'lemon-planet-nonce',
+          signedNonce: 'lemon-planet-signed-nonce',
+          finalPayloadJson: JSON.stringify(result.finalPayload),
+        });
+        
         onAuthSuccess?.();
       } else {
         console.log('Verification failed:', data);
@@ -65,15 +78,18 @@ export const Auth = ({ onAuthSuccess }: { onAuthSuccess?: () => void }) => {
 
   // Auto-verify on mount if not authenticated - SOLO UNA VEZ
   const [hasAttemptedVerification, setHasAttemptedVerification] = useState(false);
+  const [verificationSuccessful, setVerificationSuccessful] = useState(false);
   
   useEffect(() => {
-    console.log('Auth useEffect triggered:', { status, isInstalled, isVerifying, hasAttemptedVerification });
-    if (status === 'unauthenticated' && isInstalled && !isVerifying && !hasAttemptedVerification) {
+    console.log('Auth useEffect triggered:', { status, isInstalled, isVerifying, hasAttemptedVerification, verificationSuccessful });
+    
+    // Solo ejecutar si no está autenticado, MiniKit está instalado, no está verificando, no ha intentado verificar, y no ha tenido éxito
+    if (status === 'unauthenticated' && isInstalled && !isVerifying && !hasAttemptedVerification && !verificationSuccessful) {
       console.log('Starting auto-verification...');
       setHasAttemptedVerification(true);
       handleVerify();
     }
-  }, [status, isInstalled, isVerifying, hasAttemptedVerification]);
+  }, [status, isInstalled, isVerifying, hasAttemptedVerification, verificationSuccessful]);
 
   if (status === 'loading') {
     return (
