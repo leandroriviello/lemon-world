@@ -1,9 +1,9 @@
-import { hashNonce } from '@/auth/wallet/client-helpers';
-import {
-  MiniAppWalletAuthSuccessPayload,
-  MiniKit,
-  verifySiweMessage,
-} from '@worldcoin/minikit-js';
+// import { hashNonce } from '@/auth/wallet/client-helpers';
+// import {
+//   MiniAppWalletAuthSuccessPayload,
+//   MiniKit,
+//   verifySiweMessage,
+// } from '@worldcoin/minikit-js';
 import NextAuth, { type DefaultSession } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 
