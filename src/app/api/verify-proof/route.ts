@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifySiweMessage } from '@worldcoin/minikit-js';
+// import { verifySiweMessage } from '@worldcoin/minikit-js'; // Comentado temporalmente para debugging
 
 export async function POST(request: NextRequest) {
   try {

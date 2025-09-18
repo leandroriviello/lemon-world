@@ -89,7 +89,7 @@ export const Auth = ({ onAuthSuccess }: { onAuthSuccess?: () => void }) => {
       setHasAttemptedVerification(true);
       handleVerify();
     }
-  }, [status, isInstalled, isVerifying, hasAttemptedVerification, verificationSuccessful]);
+  }, [status, isInstalled, isVerifying, hasAttemptedVerification, verificationSuccessful, handleVerify]);
 
   if (status === 'loading') {
     return (
