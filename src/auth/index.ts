@@ -31,6 +31,7 @@ const authSecret =
   process.env.AUTH_SECRET ??
   process.env.NEXTAUTH_SECRET ??
   (!isProd ? 'insecure-development-secret' : undefined);
+console.log('[auth] Secret present:', Boolean(authSecret));
 if (!authSecret) {
   console.warn('Auth secret missing. Define AUTH_SECRET or NEXTAUTH_SECRET.');
 }
