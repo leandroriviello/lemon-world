@@ -17,16 +17,24 @@ export const Auth = ({ onAuthSuccess }: { onAuthSuccess?: () => void }) => {
   const { showError, showSuccess } = useToast();
 
   const handleVerify = useCallback(async () => {
-    if (!isInstalled || isVerifying) return;
+    console.log('handleVerify called:', { isInstalled, isVerifying });
+    if (!isInstalled || isVerifying) {
+      console.log('handleVerify early return:', { isInstalled, isVerifying });
+      return;
+    }
 
+    console.log('Starting verification process...');
     setIsVerifying(true);
     try {
+      console.log('Calling MiniKit.commandsAsync.verify...');
       const result = await MiniKit.commandsAsync.verify({
         action: 'lemon-planet-auth', // Make sure to create this in the developer portal
         verification_level: verificationLevel,
       });
+      console.log('MiniKit verify result:', result);
 
       // Verify the proof on the server
+      console.log('Calling /api/verify-proof...');
       const response = await fetch('/api/verify-proof', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -37,23 +45,29 @@ export const Auth = ({ onAuthSuccess }: { onAuthSuccess?: () => void }) => {
       });
 
       const data = await response.json();
+      console.log('Server verification response:', data);
       if (data.verifyRes?.success) {
+        console.log('Verification successful!');
         showSuccess(t('authSuccess') || 'Autenticación exitosa');
         onAuthSuccess?.();
       } else {
+        console.log('Verification failed:', data);
         showError(t('authFailed') || 'Error en la autenticación');
       }
     } catch (error) {
       console.error('Verification error:', error);
       showError(t('authError') || 'Error durante la verificación');
     } finally {
+      console.log('Setting isVerifying to false');
       setIsVerifying(false);
     }
   }, [isInstalled, isVerifying, verificationLevel, showSuccess, showError, t, onAuthSuccess]);
 
   // Auto-verify on mount if not authenticated
   useEffect(() => {
+    console.log('Auth useEffect triggered:', { status, isInstalled, isVerifying });
     if (status === 'unauthenticated' && isInstalled && !isVerifying) {
+      console.log('Starting auto-verification...');
       handleVerify();
     }
   }, [status, isInstalled, isVerifying]);
@@ -125,7 +139,7 @@ export const Auth = ({ onAuthSuccess }: { onAuthSuccess?: () => void }) => {
           <LiveFeedback
             label={{
               failed: t('authFailed') || 'Error en la autenticación',
-              pending: t('verifying') || 'Verificando...',
+              pending: '', // Removemos el texto duplicado aquí
               success: t('authSuccess') || 'Autenticación exitosa',
             }}
             state={isVerifying ? 'pending' : undefined}
