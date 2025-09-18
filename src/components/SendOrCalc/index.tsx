@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from 'react';
 import { MiniKit } from '@worldcoin/minikit-js';
 import { Pay } from '@/components/Pay';
 import { Calc } from '@/components/Calc';
+import { History } from '@/components/History';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { useLanguage } from '@/providers/Language';
 
-type View = 'send' | 'calc';
+type View = 'send' | 'calc' | 'history';
 
 export const SendOrCalc = () => {
   const [view, setView] = useState<View>('send');
@@ -16,6 +17,7 @@ export const SendOrCalc = () => {
   const outerRef = useRef<HTMLDivElement | null>(null);
   const sendRef = useRef<HTMLDivElement | null>(null);
   const calcRef = useRef<HTMLDivElement | null>(null);
+  const historyRef = useRef<HTMLDivElement | null>(null);
   const [containerHeight, setContainerHeight] = useState<number | undefined>(undefined);
   const { t } = useLanguage();
 
@@ -48,18 +50,30 @@ export const SendOrCalc = () => {
     sy.current = null;
     if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
     if (dx < 0) {
-      setView('calc');
-      triggerHaptic();
+      // Swipe left - go to next view
+      if (view === 'send') {
+        setView('calc');
+        triggerHaptic();
+      } else if (view === 'calc') {
+        setView('history');
+        triggerHaptic();
+      }
     }
     if (dx > 0) {
-      setView('send');
-      triggerHaptic();
+      // Swipe right - go to previous view
+      if (view === 'history') {
+        setView('calc');
+        triggerHaptic();
+      } else if (view === 'calc') {
+        setView('send');
+        triggerHaptic();
+      }
     }
   };
 
   // Measure active panel height to avoid vertical jumps
   const measure = () => {
-    const el = (view === 'send' ? sendRef.current : calcRef.current);
+    const el = view === 'send' ? sendRef.current : view === 'calc' ? calcRef.current : historyRef.current;
     if (el) setContainerHeight(el.offsetHeight);
   };
   useEffect(() => {
@@ -93,16 +107,18 @@ export const SendOrCalc = () => {
             {/* Sliding indicator */}
             <div
               key={view}
-              className={`absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] rounded-full transition-transform duration-300 ease-out
+              className={`absolute top-1 bottom-1 left-1 w-[calc(33.333%-0.25rem)] rounded-full transition-transform duration-300 ease-out
                         ring-1 ring-black/5 shadow-[0_8px_22px_rgba(255,209,0,0.35),inset_0_1px_0_rgba(255,255,255,0.7)]
                           ${view === 'send'
                             ? 'bg-[linear-gradient(180deg,#FFE566_0%,#FFD100_55%,#E6B800_100%)] translate-x-0'
-                            : 'bg-[linear-gradient(180deg,#FFE566_0%,#FFD100_55%,#E6B800_100%)] translate-x-[calc(100%+0.25rem)]'
+                            : view === 'calc'
+                            ? 'bg-[linear-gradient(180deg,#FFE566_0%,#FFD100_55%,#E6B800_100%)] translate-x-[calc(100%+0.25rem)]'
+                            : 'bg-[linear-gradient(180deg,#FFE566_0%,#FFD100_55%,#E6B800_100%)] translate-x-[calc(200%+0.5rem)]'
                           } glow-pop`}
               aria-hidden
             />
             {/* Buttons */}
-            <div className="relative grid grid-cols-2 h-full">
+            <div className="relative grid grid-cols-3 h-full">
               <button
                 type="button"
                 onClick={() => { setView('send'); triggerHaptic(); }}
@@ -121,6 +137,15 @@ export const SendOrCalc = () => {
               >
                 {t('calculator')}
               </button>
+              <button
+                type="button"
+                onClick={() => { setView('history'); triggerHaptic(); }}
+                className={`z-10 font-semibold text-sm transition-colors ${
+                  view === 'history' ? 'text-black' : 'text-white'
+                }`}
+              >
+                {t('history')}
+              </button>
             </div>
         </div>
       </div>
@@ -128,7 +153,7 @@ export const SendOrCalc = () => {
       {/* Title area with fixed height and crossfade */}
       <div className="h-10 flex items-center justify-center overflow-hidden">
         <h1 key={view} className="fade-in-up text-xl font-bold text-foreground">
-          {view === 'send' ? t('titleSend') : t('titleCalc')}
+          {view === 'send' ? t('titleSend') : view === 'calc' ? t('titleCalc') : t('titleHistory')}
         </h1>
       </div>
 
@@ -138,14 +163,23 @@ export const SendOrCalc = () => {
         style={{ height: containerHeight ? `${containerHeight}px` : undefined, transition: 'height 250ms ease' }}
       >
         <div
-          className="flex w-[200%] transition-transform duration-300 ease-out will-change-transform"
-          style={{ transform: view === 'send' ? 'translateX(0%)' : 'translateX(-50%)' }}
+          className="flex w-[300%] transition-transform duration-300 ease-out will-change-transform"
+          style={{ 
+            transform: view === 'send' 
+              ? 'translateX(0%)' 
+              : view === 'calc' 
+              ? 'translateX(-33.333%)' 
+              : 'translateX(-66.666%)' 
+          }}
         >
-          <div ref={sendRef} className="w-1/2 px-0">
+          <div ref={sendRef} className="w-1/3 px-0">
             <Pay hideHeader />
           </div>
-          <div ref={calcRef} className="w-1/2 px-0">
+          <div ref={calcRef} className="w-1/3 px-0">
             <Calc hideHeader />
+          </div>
+          <div ref={historyRef} className="w-1/3 px-0">
+            <History hideHeader />
           </div>
         </div>
       </div>

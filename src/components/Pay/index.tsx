@@ -152,6 +152,32 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
       if (conf?.success) {
         setBtnState("success");
         showSuccess(t('sentOk', { n: num }));
+        
+        // Save transaction to history
+        const transaction = {
+          id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          amount: num,
+          to: toAddress,
+          status: 'success' as const,
+          hash: finalPayload.txHash,
+          timestamp: Date.now(),
+          reference: finalPayload.reference,
+        };
+        
+        // Save to localStorage
+        try {
+          const existing = JSON.parse(localStorage.getItem('lemon-planet-transactions') || '[]');
+          const updated = [transaction, ...existing];
+          localStorage.setItem('lemon-planet-transactions', JSON.stringify(updated));
+          
+          // Dispatch custom event for real-time updates
+          window.dispatchEvent(new CustomEvent('new-transaction', {
+            detail: { type: 'new-transaction', transaction }
+          }));
+        } catch (error) {
+          console.error('Error saving transaction:', error);
+        }
+        
         // Haptic de éxito
         try {
           type NavigatorWithVibrate = Navigator & { vibrate?: (pattern: number | number[]) => boolean };
