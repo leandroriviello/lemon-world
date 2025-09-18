@@ -8,8 +8,9 @@ const Eruda = dynamic(() => import('./eruda-provider').then((c) => c.Eruda), {
 });
 
 export const ErudaProvider = (props: { children: ReactNode }) => {
-  if (process.env.NODE_ENV === 'production') {
-    return props.children;
-  }
+  // Activar Eruda temporalmente para debugging en producción
+  // if (process.env.NODE_ENV === 'production') {
+  //   return props.children;
+  // }
   return <Eruda>{props.children}</Eruda>;
 };
