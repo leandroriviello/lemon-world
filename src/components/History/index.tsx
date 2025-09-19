@@ -79,17 +79,6 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
 
   // No event listeners: list is sourced from on-chain each render
 
-  const formatDate = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return new Intl.DateTimeFormat('es-AR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date);
-  };
-
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('es-AR', {
       minimumFractionDigits: 2,
