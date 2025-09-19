@@ -140,7 +140,14 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
 
       const { finalPayload } = result;
 
-      // 3) Confirmar
+      // Si el usuario canceló o el payload indica error, no continuar
+      if (!finalPayload || finalPayload.status !== 'success') {
+        showError(t('cancelled'));
+        setBtnState(undefined);
+        return;
+      }
+
+      // 3) Confirmar con el backend (valida status y txHash)
       setBtnState("verificando");
       const r3 = await fetch("/api/confirm-payment", {
         method: "POST",
