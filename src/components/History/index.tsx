@@ -23,6 +23,7 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
 
   // Fetch on-chain transactions: last 10 transfers for the current wallet
   useEffect(() => {
+    let stop = false;
     const fetchOnchain = async () => {
       try {
         const addr = session?.user?.walletAddress;
@@ -35,16 +36,29 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
         u.searchParams.set('limit', '10');
         const r = await fetch(u.toString(), { cache: 'no-store' });
         const j = (await r.json()) as { transactions: Transaction[] };
-        setTransactions((j.transactions || []).sort((a, b) => b.timestamp - a.timestamp));
+        if (!stop) {
+          setTransactions((j.transactions || []).sort((a, b) => b.timestamp - a.timestamp));
+        }
       } catch (e) {
         console.error('onchain history error', e);
         setTransactions([]);
       } finally {
-        setLoading(false);
+        if (!stop) setLoading(false);
       }
     };
 
     fetchOnchain();
+    // Poll up to 6 times (30s) to catch new txs soon after sending
+    let attempts = 0;
+    const iv = setInterval(() => {
+      attempts += 1;
+      if (attempts > 6) {
+        clearInterval(iv);
+      } else {
+        fetchOnchain();
+      }
+    }, 5000);
+    return () => { stop = true; clearInterval(iv); };
   }, [session?.user?.walletAddress]);
 
   // No event listeners: list is sourced from on-chain each render

@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 
     const params = new URLSearchParams({
       module: 'account',
-      action: wldContract ? 'tokentx' : 'txlist',
+      action: 'tokentx',
       address,
       sort: 'desc',
       page: '1',
@@ -35,10 +35,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ transactions: [] });
     }
 
-    const decimals = Number(process.env.WLD_DECIMALS || '18');
-    const toNumber = (v: string) => {
+    const toNumber = (v: string, decStr?: string) => {
       try {
-        const n = BigInt(v);
+        const n = BigInt(v || '0');
+        const decimals = Number(decStr || process.env.WLD_DECIMALS || '18');
         const denom = BigInt(10) ** BigInt(decimals);
         const whole = Number(n / denom);
         const frac = Number(n % denom) / Number(denom);
@@ -53,11 +53,16 @@ export async function GET(req: NextRequest) {
       to?: string;
       value?: string;
       timeStamp: string;
+      tokenSymbol?: string;
+      tokenDecimal?: string;
     };
     const arr = j.result as BaseScanTx[];
-    const mapped = arr.map((tx) => ({
+    const filtered = wldContract
+      ? arr.filter(() => true) // contractaddress already filters
+      : arr.filter(tx => (tx.tokenSymbol || '').toUpperCase() === 'WLD');
+    const mapped = filtered.map((tx) => ({
       id: tx.hash,
-      amount: toNumber(tx.value ?? '0'),
+      amount: toNumber(tx.value ?? '0', tx.tokenDecimal),
       to: (tx.to || '').toLowerCase(),
       status: 'success' as const,
       hash: tx.hash,

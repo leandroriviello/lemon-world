@@ -3,11 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
   try {
     const { finalPayload } = await req.json();
-    const ok =
+    const ok = Boolean(
       finalPayload &&
       finalPayload.status === 'success' &&
-      typeof finalPayload.txHash === 'string' &&
-      finalPayload.txHash.length > 0;
+      (
+        (typeof finalPayload.txHash === 'string' && finalPayload.txHash.length > 0) ||
+        (typeof finalPayload.transaction_id === 'string' && finalPayload.transaction_id.length > 0)
+      )
+    );
 
     if (!ok) {
       return NextResponse.json({ success: false }, { status: 400 });
