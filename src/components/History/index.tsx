@@ -20,6 +20,8 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
   const { t } = useLanguage();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
 
   // Fetch on-chain transactions: last 10 transfers for the current wallet
   useEffect(() => {
@@ -38,12 +40,14 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
         const j = (await r.json()) as { transactions: Transaction[] };
         if (!stop) {
           setTransactions((j.transactions || []).sort((a, b) => b.timestamp - a.timestamp));
+          setLastUpdated(Date.now());
         }
       } catch (e) {
         console.error('onchain history error', e);
         setTransactions([]);
       } finally {
         if (!stop) setLoading(false);
+        setRefreshing(false);
       }
     };
 
@@ -60,6 +64,25 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
     }, 5000);
     return () => { stop = true; clearInterval(iv); };
   }, [session?.user?.walletAddress]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const addr = session?.user?.walletAddress;
+      if (!addr) { setRefreshing(false); return; }
+      const u = new URL('/api/onchain/history', window.location.origin);
+      u.searchParams.set('address', addr);
+      u.searchParams.set('limit', '10');
+      const r = await fetch(u.toString(), { cache: 'no-store' });
+      const j = (await r.json()) as { transactions: Transaction[] };
+      setTransactions((j.transactions || []).sort((a, b) => b.timestamp - a.timestamp));
+      setLastUpdated(Date.now());
+    } catch (e) {
+      console.error('manual refresh error', e);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   // No event listeners: list is sourced from on-chain each render
 
@@ -136,13 +159,23 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
     <div className="w-full space-y-6">
       {/* Header */}
       {!hideHeader && (
-        <div className="flex items-center gap-3 justify-center">
+        <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-foreground">{t('titleHistory')}</h1>
+          <button
+            onClick={onRefresh}
+            disabled={refreshing}
+            className="px-3 py-1.5 rounded-lg bg-white/10 text-white text-xs font-medium hover:bg-white/20 disabled:opacity-60"
+          >
+            {refreshing ? 'Actualizando...' : 'Actualizar'}
+          </button>
         </div>
       )}
 
       {/* Transactions List */}
       <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 space-y-4">
+        {lastUpdated && (
+          <div className="text-right text-[11px] text-white/50">Última actualización: {new Date(lastUpdated).toLocaleTimeString()}</div>
+        )}
         {transactions.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">

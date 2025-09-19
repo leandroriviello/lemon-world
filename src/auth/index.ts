@@ -1,9 +1,9 @@
-// import { hashNonce } from '@/auth/wallet/client-helpers';
-// import {
-//   MiniAppWalletAuthSuccessPayload,
-//   MiniKit,
-//   verifySiweMessage,
-// } from '@worldcoin/minikit-js';
+import { hashNonce } from '@/auth/wallet/client-helpers';
+import {
+  MiniAppWalletAuthSuccessPayload,
+  MiniKit,
+  verifySiweMessage,
+} from '@worldcoin/minikit-js';
 import NextAuth, { type DefaultSession } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 
@@ -50,61 +50,33 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         signedNonce: { label: 'Signed Nonce', type: 'text' },
         finalPayloadJson: { label: 'Final Payload', type: 'text' },
       },
-      // @ts-expect-error TODO
-      authorize: async ({
-        nonce,
-        signedNonce,
-        finalPayloadJson,
-      }: {
+      // @ts-expect-error Credentials types
+      authorize: async ({ nonce, signedNonce, finalPayloadJson }: {
         nonce: string;
         signedNonce: string;
         finalPayloadJson: string;
       }) => {
-        console.log('NextAuth authorize called with:', { nonce, signedNonce: signedNonce ? 'present' : 'missing', finalPayloadJson: finalPayloadJson ? 'present' : 'missing' });
-        
-        // TEMPORAL: Simplificar la autenticación para debugging
-        // En lugar de verificar SIWE, vamos a aceptar cualquier payload válido
-        try {
-          const finalPayload = JSON.parse(finalPayloadJson);
-          console.log('Parsed finalPayload:', finalPayload);
-          
-          // Simular usuario autenticado
-          return {
-            id: 'temp-user-id',
-            walletAddress: '0x1234567890123456789012345678901234567890',
-            username: 'Test User',
-            profilePictureUrl: '',
-          };
-        } catch (error) {
-          console.log('Error parsing finalPayload:', error);
-          return null;
-        }
-
-        // Código original comentado para debugging:
-        /*
         const expectedSignedNonce = hashNonce({ nonce });
+        if (signedNonce !== expectedSignedNonce) return null;
 
-        if (signedNonce !== expectedSignedNonce) {
-          console.log('Invalid signed nonce');
+        let finalPayload: MiniAppWalletAuthSuccessPayload;
+        try {
+          finalPayload = JSON.parse(finalPayloadJson);
+        } catch {
           return null;
         }
 
-        const finalPayload: MiniAppWalletAuthSuccessPayload =
-          JSON.parse(finalPayloadJson);
         const result = await verifySiweMessage(finalPayload, nonce);
+        const addr = result.siweMessageData?.address || finalPayload.address;
+        if (!result.isValid || !addr) return null;
 
-        if (!result.isValid || !result.siweMessageData.address) {
-          console.log('Invalid final payload');
-          return null;
-        }
-        // Optionally, fetch the user info from your own database
-        const userInfo = await MiniKit.getUserInfo(finalPayload.address);
-
+        const userInfo = await MiniKit.getUserInfo(addr);
         return {
-          id: finalPayload.address,
-          ...userInfo,
+          id: addr,
+          walletAddress: userInfo.walletAddress ?? addr,
+          username: userInfo.username ?? '',
+          profilePictureUrl: userInfo.profilePictureUrl ?? '',
         };
-        */
       },
     }),
   ],
