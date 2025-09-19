@@ -13,7 +13,7 @@ type SavedTx = {
   status: 'pending' | 'submitted' | 'confirmed' | 'failed' | 'unknown';
 };
 
-const storeFile = path.join(process.cwd(), 'data', 'transactions.json');
+const storeFile = path.join(process.env.DATA_DIR || '/tmp', 'lemon-planet', 'transactions.json');
 
 async function readStore(): Promise<SavedTx[]> {
   try {

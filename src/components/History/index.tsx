@@ -164,9 +164,23 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
 
       {/* Transactions List */}
       <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 space-y-4">
-        {lastUpdated && (
-          <div className="text-right text-[11px] text-white/50">{t('lastUpdated')}: {new Date(lastUpdated).toLocaleTimeString()}</div>
-        )}
+        <div className="flex items-center justify-between text-[11px] text-white/50">
+          <div />
+          <div>
+            {lastUpdated ? (
+              <span>{t('lastUpdated')}: {new Date(lastUpdated).toLocaleTimeString()}</span>
+            ) : (
+              <span>&nbsp;</span>
+            )}
+          </div>
+          <button
+            onClick={onRefresh}
+            disabled={refreshing}
+            className="ml-2 px-2 py-1 rounded bg-white/10 text-white hover:bg-white/20 disabled:opacity-60"
+          >
+            {refreshing ? t('refreshing') : t('refresh')}
+          </button>
+        </div>
         {transactions.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
@@ -183,7 +197,7 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
           <div className="space-y-3">
             {transactions.map((tx) => (
               <div
-                key={tx.id}
+                key={(tx.id || tx.txHash || tx.transaction_id || tx.reference || Math.random().toString(36)).toString()}
                 className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3"
               >
                 {/* Header with amount and status */}

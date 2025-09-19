@@ -13,7 +13,8 @@ type SavedTx = {
   status: 'pending' | 'submitted' | 'confirmed' | 'failed' | 'unknown';
 };
 
-const storePath = path.join(process.cwd(), 'data');
+// Persist to a writeable temp dir by default (works on serverless platforms)
+const storePath = path.join(process.env.DATA_DIR || '/tmp', 'lemon-planet');
 const storeFile = path.join(storePath, 'transactions.json');
 
 async function readStore(): Promise<SavedTx[]> {
