@@ -48,7 +48,14 @@ export async function GET(req: NextRequest) {
       }
     };
 
-    const mapped = j.result.map((tx: any) => ({
+    type BaseScanTx = {
+      hash: string;
+      to?: string;
+      value?: string;
+      timeStamp: string;
+    };
+    const arr = j.result as BaseScanTx[];
+    const mapped = arr.map((tx) => ({
       id: tx.hash,
       amount: toNumber(tx.value ?? '0'),
       to: (tx.to || '').toLowerCase(),
@@ -63,4 +70,3 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ transactions: [] });
   }
 }
-
