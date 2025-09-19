@@ -42,7 +42,7 @@ async function fetchWorldStatus(txId: string) {
   }
 }
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   const list = await readStore();
 
   // Merge status from World API when possible
@@ -62,4 +62,3 @@ export async function GET(_req: NextRequest) {
   merged.sort((a, b) => b.timestamp - a.timestamp);
   return NextResponse.json({ transactions: merged });
 }
-
