@@ -5,6 +5,7 @@ import { useToast } from '@/components/lemon/useToast';
 import { useSession } from 'next-auth/react';
 import { useLanguage } from '@/providers/Language';
 import { Auth } from '@/components/Auth';
+import { Copy, Check } from 'lucide-react';
 
 export interface Transaction {
   id?: string; // on-chain hash
@@ -26,6 +27,7 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   // Fetch on-chain transactions: last 10 transfers for the current wallet
   useEffect(() => {
@@ -121,7 +123,8 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
       case 'pending':
         return t('statusPending');
       case 'submitted':
-        return t('offchainConfirmed');
+        // Mostrar simplemente "Confirmado" como pidió el usuario
+        return t('statusSuccess');
       case 'failed':
         return t('statusFailed');
       default:
@@ -130,7 +133,7 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
   };
 
   const truncateAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    return `${address.slice(0, 10)}...${address.slice(-6)}`;
   };
 
   const truncateHash = (hash: string) => {
@@ -207,18 +210,40 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
                       {getStatusText(tx.status)}
                     </span>
                   </div>
-                  <span className="text-xs text-white/60">
-                    {formatDate(tx.timestamp)}
+                  <span className="text-right text-[11px] leading-tight text-white/60">
+                    <span className="block">{new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(tx.timestamp))}</span>
+                    <span className="block">{new Intl.DateTimeFormat('es-AR', { hour: '2-digit', minute: '2-digit' }).format(new Date(tx.timestamp))}</span>
                   </span>
                 </div>
 
                 {/* Transaction details */}
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-white/60">{t('transactionTo')}:</span>
-                    <span className="text-white font-mono">
+                  <div className="flex items-center gap-2">
+                    <span className="text-white/60 min-w-[42px]">{t('transactionTo')}:</span>
+                    <span className="text-white font-mono truncate flex-1">
                       {truncateAddress(tx.to)}
                     </span>
+                    <button
+                      aria-label={t('copyDestination')}
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(tx.to);
+                          showSuccess(t('copiedAddress'));
+                          const k = `${tx.id || tx.txHash || tx.transaction_id || tx.reference}-to`;
+                          setCopiedKey(k);
+                          setTimeout(() => setCopiedKey((v) => (v === k ? null : v)), 1500);
+                        } catch {
+                          showError(t('copyFailed'));
+                        }
+                      }}
+                      className="p-1.5 rounded-md bg-white/5 hover:bg-white/10 text-white/80"
+                    >
+                      {copiedKey === `${tx.id || tx.txHash || tx.transaction_id || tx.reference}-to` ? (
+                        <Check size={16} />
+                      ) : (
+                        <Copy size={16} />
+                      )}
+                    </button>
                   </div>
                   
                   {(tx.hash || tx.txHash) && (
@@ -231,58 +256,51 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
                   )}
 
                   {(tx.transaction_id || tx.reference) && (
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-white/60">ID:</span>
-                      <span className="text-white font-mono">
-                        {(tx.transaction_id || tx.reference || '').slice(0, 10)}...
+                    <div className="flex items-center gap-2">
+                      <span className="text-white/60 min-w-[42px]">ID:</span>
+                      <span className="text-white font-mono truncate flex-1">
+                        {truncateAddress(tx.transaction_id || tx.reference || '')}
                       </span>
+                      <button
+                        aria-label={t('copyId')}
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(tx.transaction_id || tx.reference || '');
+                            showSuccess(t('copiedId'));
+                            const k = `${tx.id || tx.txHash || tx.transaction_id || tx.reference}-id`;
+                            setCopiedKey(k);
+                            setTimeout(() => setCopiedKey((v) => (v === k ? null : v)), 1500);
+                          } catch {
+                            showError(t('copyFailed'));
+                          }
+                        }}
+                        className="p-1.5 rounded-md bg-white/5 hover:bg-white/10 text-white/80"
+                      >
+                        {copiedKey === `${tx.id || tx.txHash || tx.transaction_id || tx.reference}-id` ? (
+                          <Check size={16} />
+                        ) : (
+                          <Copy size={16} />
+                        )}
+                      </button>
                     </div>
                   )}
                 </div>
 
-                {/* Action buttons */}
-                <div className="flex gap-2 pt-2">
-                  {(tx.hash || tx.txHash) && (
+                {/* Action area */}
+                {(tx.hash || tx.txHash) && (
+                  <div className="pt-2">
                     <button
                       onClick={() => {
                         const base = process.env.NEXT_PUBLIC_BASE_EXPLORER_URL || 'https://basescan.org';
                         const explorerUrl = `${base.replace(/\/$/, '')}/tx/${(tx.hash || tx.txHash) as string}`;
                         window.open(explorerUrl, '_blank', 'noopener,noreferrer');
                       }}
-                      className="flex-1 px-3 py-2 rounded-lg bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors"
+                      className="w-full px-3 py-2 rounded-lg bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors"
                     >
                       {t('viewTx')}
                     </button>
-                  )}
-                  <button
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(tx.to);
-                        showSuccess(t('copiedAddress'));
-                      } catch {
-                        showError(t('copyFailed'));
-                      }
-                    }}
-                    className="flex-1 px-3 py-2 rounded-lg bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors"
-                  >
-                    {t('copyDestination')}
-                  </button>
-                  {(tx.transaction_id || tx.reference) && (
-                    <button
-                      onClick={async () => {
-                        try {
-                          await navigator.clipboard.writeText(tx.transaction_id || tx.reference || '');
-                          showSuccess(t('copiedId'));
-                        } catch {
-                          showError(t('copyFailed'));
-                        }
-                      }}
-                      className="flex-1 px-3 py-2 rounded-lg bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors"
-                    >
-                      {t('copyId')}
-                    </button>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
