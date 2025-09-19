@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useToast } from '@/components/lemon/useToast';
 import { useSession } from 'next-auth/react';
 import { useLanguage } from '@/providers/Language';
 import { Auth } from '@/components/Auth';
@@ -20,6 +21,7 @@ export interface Transaction {
 export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
   const { data: session } = useSession();
   const { t } = useLanguage();
+  const { showSuccess, showError } = useToast();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -102,7 +104,7 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
       case 'pending':
         return 'text-yellow-400 bg-yellow-400/20';
       case 'submitted':
-        return 'text-yellow-400 bg-yellow-400/20';
+        return 'text-amber-300 bg-amber-500/15 border border-amber-300/30';
       case 'failed':
         return 'text-red-400 bg-red-400/20';
       default:
@@ -119,7 +121,7 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
       case 'pending':
         return t('statusPending');
       case 'submitted':
-        return 'Confirmado (off-chain)';
+        return t('offchainConfirmed');
       case 'failed':
         return t('statusFailed');
       default:
@@ -163,7 +165,7 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
             disabled={refreshing}
             className="px-3 py-1.5 rounded-lg bg-white/10 text-white text-xs font-medium hover:bg-white/20 disabled:opacity-60"
           >
-            {refreshing ? 'Actualizando...' : 'Actualizar'}
+            {refreshing ? t('refreshing') : t('refresh')}
           </button>
         </div>
       )}
@@ -171,7 +173,7 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
       {/* Transactions List */}
       <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 space-y-4">
         {lastUpdated && (
-          <div className="text-right text-[11px] text-white/50">Última actualización: {new Date(lastUpdated).toLocaleTimeString()}</div>
+          <div className="text-right text-[11px] text-white/50">{t('lastUpdated')}: {new Date(lastUpdated).toLocaleTimeString()}</div>
         )}
         {transactions.length === 0 ? (
           <div className="text-center py-12">
@@ -199,7 +201,8 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
                       {formatAmount(tx.amount)} WLD
                     </span>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(tx.status)}`}
+                      className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getStatusColor(tx.status)}`}
+                      title={getStatusText(tx.status)}
                     >
                       {getStatusText(tx.status)}
                     </span>
@@ -227,19 +230,19 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
                     </div>
                   )}
 
-                  {tx.reference && (
-                    <div className="flex justify-between">
-                      <span className="text-white/60">Ref:</span>
+                  {(tx.transaction_id || tx.reference) && (
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-white/60">ID:</span>
                       <span className="text-white font-mono">
-                        {tx.reference.slice(0, 8)}...
+                        {(tx.transaction_id || tx.reference || '').slice(0, 10)}...
                       </span>
                     </div>
                   )}
                 </div>
 
-                {/* Action button */}
-                {(tx.hash || tx.txHash) && (
-                  <div className="flex gap-2 pt-2">
+                {/* Action buttons */}
+                <div className="flex gap-2 pt-2">
+                  {(tx.hash || tx.txHash) && (
                     <button
                       onClick={() => {
                         const base = process.env.NEXT_PUBLIC_BASE_EXPLORER_URL || 'https://basescan.org';
@@ -248,10 +251,38 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
                       }}
                       className="flex-1 px-3 py-2 rounded-lg bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors"
                     >
-                      Ver transacción
+                      {t('viewTx')}
                     </button>
-                  </div>
-                )}
+                  )}
+                  <button
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(tx.to);
+                        showSuccess(t('copiedAddress'));
+                      } catch {
+                        showError(t('copyFailed'));
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 rounded-lg bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors"
+                  >
+                    {t('copyDestination')}
+                  </button>
+                  {(tx.transaction_id || tx.reference) && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(tx.transaction_id || tx.reference || '');
+                          showSuccess(t('copiedId'));
+                        } catch {
+                          showError(t('copyFailed'));
+                        }
+                      }}
+                      className="flex-1 px-3 py-2 rounded-lg bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors"
+                    >
+                      {t('copyId')}
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>

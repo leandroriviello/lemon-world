@@ -67,6 +67,16 @@ const dict: Dict = {
     worldAppRequired: "Se requiere World App para continuar",
     loading: "Cargando...",
     noTransactionsDesc: "Tus transacciones aparecerán aquí",
+    viewTx: "Ver transacción",
+    copyDestination: "Copiar destino",
+    copyId: "Copiar ID",
+    copiedAddress: "Dirección copiada",
+    copiedId: "ID copiado",
+    copyFailed: "No se pudo copiar",
+    lastUpdated: "Última actualización",
+    refresh: "Actualizar",
+    refreshing: "Actualizando...",
+    offchainConfirmed: "Confirmado (off-chain)",
     footer: "Lemon Planet no tiene relación ni con Lemon ni con Worldcoin",
   },
   en: {
@@ -129,6 +139,16 @@ const dict: Dict = {
     worldAppRequired: "World App is required to continue",
     loading: "Loading...",
     noTransactionsDesc: "Your transactions will appear here",
+    viewTx: "View transaction",
+    copyDestination: "Copy destination",
+    copyId: "Copy ID",
+    copiedAddress: "Address copied",
+    copiedId: "ID copied",
+    copyFailed: "Copy failed",
+    lastUpdated: "Last updated",
+    refresh: "Refresh",
+    refreshing: "Refreshing...",
+    offchainConfirmed: "Confirmed (off-chain)",
     footer: "Lemon Planet is not affiliated with Lemon or Worldcoin",
   },
   pt: {
@@ -191,6 +211,16 @@ const dict: Dict = {
     worldAppRequired: "World App é necessário para continuar",
     loading: "Carregando...",
     noTransactionsDesc: "Suas transações aparecerão aqui",
+    viewTx: "Ver transação",
+    copyDestination: "Copiar endereço",
+    copyId: "Copiar ID",
+    copiedAddress: "Endereço copiado",
+    copiedId: "ID copiado",
+    copyFailed: "Falha ao copiar",
+    lastUpdated: "Última atualização",
+    refresh: "Atualizar",
+    refreshing: "Atualizando...",
+    offchainConfirmed: "Confirmado (off-chain)",
     footer: "Lemon Planet não tem relação com Lemon nem com Worldcoin",
   },
 };
@@ -238,4 +268,3 @@ export const useLanguage = () => {
   if (!ctx) throw new Error('LanguageProvider missing');
   return ctx;
 };
-
