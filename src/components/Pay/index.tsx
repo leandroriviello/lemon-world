@@ -152,7 +152,7 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
       const r3 = await fetch("/api/confirm-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ finalPayload }),
+        body: JSON.stringify({ finalPayload, amount: num, to: toAddress }),
       });
       const conf = (await r3.json()) as { success?: boolean };
 

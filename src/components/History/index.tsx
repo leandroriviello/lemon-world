@@ -6,11 +6,13 @@ import { useLanguage } from '@/providers/Language';
 import { Auth } from '@/components/Auth';
 
 export interface Transaction {
-  id: string;
+  id?: string; // on-chain hash
+  transaction_id?: string; // World App payment id
   amount: number;
   to: string;
-  status: 'success' | 'pending' | 'failed';
+  status: 'success' | 'pending' | 'failed' | 'confirmed' | 'submitted' | 'unknown';
   hash?: string;
+  txHash?: string;
   timestamp: number;
   reference?: string;
 }
@@ -28,15 +30,7 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
     let stop = false;
     const fetchOnchain = async () => {
       try {
-        const addr = session?.user?.walletAddress;
-        if (!addr) {
-          setLoading(false);
-          return;
-        }
-        const u = new URL('/api/onchain/history', window.location.origin);
-        u.searchParams.set('address', addr);
-        u.searchParams.set('limit', '10');
-        const r = await fetch(u.toString(), { cache: 'no-store' });
+        const r = await fetch('/api/history', { cache: 'no-store' });
         const j = (await r.json()) as { transactions: Transaction[] };
         if (!stop) {
           setTransactions((j.transactions || []).sort((a, b) => b.timestamp - a.timestamp));
@@ -68,12 +62,7 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      const addr = session?.user?.walletAddress;
-      if (!addr) { setRefreshing(false); return; }
-      const u = new URL('/api/onchain/history', window.location.origin);
-      u.searchParams.set('address', addr);
-      u.searchParams.set('limit', '10');
-      const r = await fetch(u.toString(), { cache: 'no-store' });
+      const r = await fetch('/api/history', { cache: 'no-store' });
       const j = (await r.json()) as { transactions: Transaction[] };
       setTransactions((j.transactions || []).sort((a, b) => b.timestamp - a.timestamp));
       setLastUpdated(Date.now());
@@ -108,7 +97,11 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
     switch (status) {
       case 'success':
         return 'text-green-400 bg-green-400/20';
+      case 'confirmed':
+        return 'text-green-400 bg-green-400/20';
       case 'pending':
+        return 'text-yellow-400 bg-yellow-400/20';
+      case 'submitted':
         return 'text-yellow-400 bg-yellow-400/20';
       case 'failed':
         return 'text-red-400 bg-red-400/20';
@@ -121,8 +114,12 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
     switch (status) {
       case 'success':
         return t('statusSuccess');
+      case 'confirmed':
+        return t('statusSuccess');
       case 'pending':
         return t('statusPending');
+      case 'submitted':
+        return 'Confirmado (off-chain)';
       case 'failed':
         return t('statusFailed');
       default:
@@ -221,11 +218,11 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
                     </span>
                   </div>
                   
-                  {tx.hash && (
+                  {(tx.hash || tx.txHash) && (
                     <div className="flex justify-between">
                       <span className="text-white/60">{t('transactionHash')}:</span>
                       <span className="text-white font-mono">
-                        {truncateHash(tx.hash)}
+                        {truncateHash((tx.hash || tx.txHash) as string)}
                       </span>
                     </div>
                   )}
@@ -241,12 +238,12 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
                 </div>
 
                 {/* Action button */}
-                {tx.hash && (
+                {(tx.hash || tx.txHash) && (
                   <div className="flex gap-2 pt-2">
                     <button
                       onClick={() => {
                         const base = process.env.NEXT_PUBLIC_BASE_EXPLORER_URL || 'https://basescan.org';
-                        const explorerUrl = `${base.replace(/\/$/, '')}/tx/${tx.hash}`;
+                        const explorerUrl = `${base.replace(/\/$/, '')}/tx/${(tx.hash || tx.txHash) as string}`;
                         window.open(explorerUrl, '_blank', 'noopener,noreferrer');
                       }}
                       className="flex-1 px-3 py-2 rounded-lg bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors"
