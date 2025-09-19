@@ -90,6 +90,18 @@ export const SendOrCalc = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view]);
 
+  // React to content growth/shrink (e.g., history list after fetch)
+  useEffect(() => {
+    const el = view === 'send' ? sendRef.current : view === 'calc' ? calcRef.current : historyRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver((entries) => {
+      const cr = entries[0]?.contentRect;
+      if (cr) setContainerHeight(cr.height);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [view]);
+
   return (
     <div
       className="w-full space-y-4"
