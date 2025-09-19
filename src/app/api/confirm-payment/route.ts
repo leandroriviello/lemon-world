@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
     // Optionally, you could persist or verify the reference here.
     return NextResponse.json({ success: true });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ success: false }, { status: 400 });
   }
 }
