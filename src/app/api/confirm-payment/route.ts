@@ -30,6 +30,8 @@ async function writeStore(items: SavedTx[]) {
   await fs.writeFile(storeFile, JSON.stringify(items, null, 2), 'utf8');
 }
 
+export const runtime = 'nodejs';
+
 export async function POST(req: NextRequest) {
   try {
     const { finalPayload, amount, to } = await req.json();

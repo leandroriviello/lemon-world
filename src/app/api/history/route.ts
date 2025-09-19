@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -41,6 +41,8 @@ async function fetchWorldStatus(txId: string) {
     return null;
   }
 }
+
+export const runtime = 'nodejs';
 
 export async function GET() {
   const list = await readStore();
