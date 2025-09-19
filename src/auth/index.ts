@@ -27,11 +27,13 @@ declare module 'next-auth' {
 // For more information on each option (and a full list of options) go to
 // https://authjs.dev/getting-started/authentication/credentials
 const isProd = process.env.NODE_ENV === 'production';
-const authSecret =
-  process.env.AUTH_SECRET ??
-  process.env.NEXTAUTH_SECRET ??
-  (!isProd ? 'insecure-development-secret' : undefined);
-console.log('[auth] Secret present:', Boolean(authSecret));
+const rawAuthSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || '';
+const cleanedSecret = rawAuthSecret.trim();
+const authSecret = cleanedSecret.length > 0 ? cleanedSecret : (!isProd ? 'insecure-development-secret' : undefined);
+const whichSecret = cleanedSecret.length > 0
+  ? (process.env.AUTH_SECRET ? 'AUTH_SECRET' : 'NEXTAUTH_SECRET')
+  : (!isProd ? 'fallback-dev' : 'missing');
+console.log(`[auth] Secret source: ${whichSecret}; present=${Boolean(authSecret)}`);
 if (!authSecret) {
   console.warn('Auth secret missing. Define AUTH_SECRET or NEXTAUTH_SECRET.');
 }
