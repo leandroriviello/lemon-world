@@ -1,0 +1,66 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+// Fetch last N ERC-20 transfers (WLD) for an address from BaseScan
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const address = (searchParams.get('address') || '').trim();
+    const limit = Math.min(Number(searchParams.get('limit') || '10'), 25);
+
+    if (!address) {
+      return NextResponse.json({ error: 'missing address' }, { status: 400 });
+    }
+
+    const apiKey = process.env.BASESCAN_API_KEY || '';
+    const apiBase = process.env.BASESCAN_API_URL || 'https://api.basescan.org/api';
+    const wldContract = process.env.WLD_CONTRACT_BASE || '';
+
+    const params = new URLSearchParams({
+      module: 'account',
+      action: wldContract ? 'tokentx' : 'txlist',
+      address,
+      sort: 'desc',
+      page: '1',
+      offset: String(limit),
+    });
+    if (wldContract) params.set('contractaddress', wldContract);
+    if (apiKey) params.set('apikey', apiKey);
+
+    const url = `${apiBase}?${params.toString()}`;
+    const r = await fetch(url, { cache: 'no-store' });
+    const j = await r.json();
+
+    if (!j || (j.status && j.status !== '1') || !Array.isArray(j.result)) {
+      // Return empty list to avoid breaking UI
+      return NextResponse.json({ transactions: [] });
+    }
+
+    const decimals = Number(process.env.WLD_DECIMALS || '18');
+    const toNumber = (v: string) => {
+      try {
+        const n = BigInt(v);
+        const denom = BigInt(10) ** BigInt(decimals);
+        const whole = Number(n / denom);
+        const frac = Number(n % denom) / Number(denom);
+        return whole + frac;
+      } catch {
+        return 0;
+      }
+    };
+
+    const mapped = j.result.map((tx: any) => ({
+      id: tx.hash,
+      amount: toNumber(tx.value ?? '0'),
+      to: (tx.to || '').toLowerCase(),
+      status: 'success' as const,
+      hash: tx.hash,
+      timestamp: Number(tx.timeStamp) * 1000,
+      reference: undefined as string | undefined,
+    }));
+
+    return NextResponse.json({ transactions: mapped });
+  } catch {
+    return NextResponse.json({ transactions: [] });
+  }
+}
+

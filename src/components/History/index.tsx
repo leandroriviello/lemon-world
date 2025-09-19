@@ -21,47 +21,33 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load transactions from localStorage
+  // Fetch on-chain transactions: last 10 transfers for the current wallet
   useEffect(() => {
-    const loadTransactions = () => {
+    const fetchOnchain = async () => {
       try {
-        const stored = localStorage.getItem('lemon-planet-transactions');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          setTransactions(parsed.sort((a: Transaction, b: Transaction) => b.timestamp - a.timestamp));
+        const addr = session?.user?.walletAddress;
+        if (!addr) {
+          setLoading(false);
+          return;
         }
-      } catch (error) {
-        console.error('Error loading transactions:', error);
+        const u = new URL('/api/onchain/history', window.location.origin);
+        u.searchParams.set('address', addr);
+        u.searchParams.set('limit', '10');
+        const r = await fetch(u.toString(), { cache: 'no-store' });
+        const j = (await r.json()) as { transactions: Transaction[] };
+        setTransactions((j.transactions || []).sort((a, b) => b.timestamp - a.timestamp));
+      } catch (e) {
+        console.error('onchain history error', e);
+        setTransactions([]);
       } finally {
         setLoading(false);
       }
     };
 
-    loadTransactions();
+    fetchOnchain();
+  }, [session?.user?.walletAddress]);
 
-    // Listen for new transactions
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'lemon-planet-transactions') {
-        loadTransactions();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  // Listen for new transactions from the same tab
-  useEffect(() => {
-    const handleNewTransaction = (e: CustomEvent) => {
-      if (e.detail?.type === 'new-transaction') {
-        const newTransaction = e.detail.transaction;
-        setTransactions(prev => [newTransaction, ...prev]);
-      }
-    };
-
-    window.addEventListener('new-transaction', handleNewTransaction as EventListener);
-    return () => window.removeEventListener('new-transaction', handleNewTransaction as EventListener);
-  }, []);
+  // No event listeners: list is sourced from on-chain each render
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -207,22 +193,21 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
                   )}
                 </div>
 
-                {/* Action buttons */}
-                <div className="flex gap-2 pt-2">
-                  <button
-                    onClick={() => {
-                      if (tx.hash) {
-                        const explorerUrl = `https://basescan.org/tx/${tx.hash}`;
+                {/* Action button */}
+                {tx.hash && (
+                  <div className="flex gap-2 pt-2">
+                    <button
+                      onClick={() => {
+                        const base = process.env.NEXT_PUBLIC_BASE_EXPLORER_URL || 'https://basescan.org';
+                        const explorerUrl = `${base.replace(/\/$/, '')}/tx/${tx.hash}`;
                         window.open(explorerUrl, '_blank', 'noopener,noreferrer');
-                      } else {
-                        navigator.clipboard.writeText(tx.to);
-                      }
-                    }}
-                    className="flex-1 px-3 py-2 rounded-lg bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors"
-                  >
-                    {tx.hash ? 'Ver transacción' : 'Copiar Dirección'}
-                  </button>
-                </div>
+                      }}
+                      className="flex-1 px-3 py-2 rounded-lg bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors"
+                    >
+                      Ver transacción
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
