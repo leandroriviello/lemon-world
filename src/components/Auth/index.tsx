@@ -20,7 +20,7 @@ export const Auth = ({ onAuthSuccess }: { onAuthSuccess?: () => void }) => {
     setIsPending(true);
     try {
       const res = await walletAuth();
-      if (res && (res as any).ok !== false) {
+      if (res?.ok) {
         showSuccess(t('authSuccess') || 'Autenticación exitosa');
         onAuthSuccess?.();
       } else {

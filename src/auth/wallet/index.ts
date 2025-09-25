@@ -1,5 +1,6 @@
 import { MiniKit } from '@worldcoin/minikit-js';
 import { signIn } from 'next-auth/react';
+import type { SignInResponse } from 'next-auth/react';
 import { getNewNonces } from './server-helpers';
 
 /**
@@ -12,7 +13,7 @@ import { getNewNonces } from './server-helpers';
  * @returns {Promise<SignInResponse>} The result of the sign-in attempt.
  * @throws {Error} If wallet authentication fails at any step.
  */
-export const walletAuth = async () => {
+export const walletAuth = async (): Promise<SignInResponse> => {
   const { nonce, signedNonce } = await getNewNonces();
 
   const result = await MiniKit.commandsAsync.walletAuth({
@@ -43,6 +44,5 @@ export const walletAuth = async () => {
     signedNonce,
     finalPayloadJson: JSON.stringify(result.finalPayload),
   });
-
-  return signInRes ?? { ok: false, error: 'unknown' };
+  return signInRes;
 };
