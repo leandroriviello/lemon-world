@@ -32,7 +32,14 @@ export const walletAuth = async (): Promise<SignInResponse> => {
       'Wallet authentication failed',
       result.finalPayload.error_code,
     );
-    return { ok: false, error: result.finalPayload.error_code } as const;
+    const failure: SignInResponse = {
+      ok: false,
+      status: 401,
+      error: String(result.finalPayload.error_code ?? 'wallet_auth_failed'),
+      code: 'WalletAuthFailed',
+      url: null,
+    };
+    return failure;
   } else {
     console.log(result.finalPayload);
   }
