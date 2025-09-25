@@ -31,15 +31,18 @@ export const walletAuth = async () => {
       'Wallet authentication failed',
       result.finalPayload.error_code,
     );
-    return;
+    return { ok: false, error: result.finalPayload.error_code } as const;
   } else {
     console.log(result.finalPayload);
   }
 
-  await signIn('credentials', {
-    redirectTo: '/home',
+  // Keep user on the current page; session will update client-side
+  const signInRes = await signIn('credentials', {
+    redirect: false,
     nonce,
     signedNonce,
     finalPayloadJson: JSON.stringify(result.finalPayload),
   });
+
+  return signInRes ?? { ok: false, error: 'unknown' };
 };
