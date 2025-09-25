@@ -50,10 +50,10 @@ export const AuthButton = () => {
     <LiveFeedback
       label={{
         failed: 'Failed to login',
-        pending: 'Logging in',
+        pending: '',
         success: 'Logged in',
       }}
-      state={isPending ? 'pending' : undefined}
+      state={undefined}
     >
       <Button
         onClick={onClick}

@@ -91,10 +91,10 @@ export const Auth = ({ onAuthSuccess }: { onAuthSuccess?: () => void }) => {
         <LiveFeedback
           label={{
             failed: t('authFailed') || 'Error en la autenticación',
-            pending: t('verifying') || 'Verificando...',
+            pending: '',
             success: t('authSuccess') || 'Autenticación exitosa',
           }}
-          state={isPending ? 'pending' : undefined}
+          state={undefined}
         >
           <Button
             onClick={handleLogin}
