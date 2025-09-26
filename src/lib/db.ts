@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { Pool } from 'pg';
+import { Pool, type QueryResult } from 'pg';
 
 // PostgreSQL connection (Railway)
 export const pool = new Pool({
@@ -7,10 +7,10 @@ export const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-export async function query<T = any>(text: string, params: any[] = []) {
+export async function query<T = unknown>(text: string, params: ReadonlyArray<unknown> = []) {
   const client = await pool.connect();
   try {
-    const res = await client.query<T>(text, params);
+    const res: QueryResult<T> = await client.query<T>(text, params as unknown[]);
     return res;
   } finally {
     client.release();
@@ -26,7 +26,7 @@ export async function ensureUserUuidByAddress(address: string): Promise<string> 
     // 1) Try to find existing user by address
     const sel = await query<UserRow>('SELECT id FROM users WHERE address = $1 LIMIT 1', [addr]);
     if (sel.rows.length > 0) {
-      return String((sel.rows[0] as any).id);
+      return String(sel.rows[0].id);
     }
 
     // 2) Insert new user and return id
@@ -36,9 +36,9 @@ export async function ensureUserUuidByAddress(address: string): Promise<string> 
       [id, addr],
     );
     return String(ins.rows[0].id);
-  } catch (e: any) {
+  } catch (e: unknown) {
     // Handle race condition on unique(address)
-    if (e?.code === '23505') {
+    if (isPgUniqueViolation(e)) {
       const sel2 = await query<UserRow>('SELECT id FROM users WHERE address = $1 LIMIT 1', [addr]);
       if (sel2.rows.length > 0) return String(sel2.rows[0].id);
     }
@@ -56,8 +56,8 @@ export async function createSessionRecord(params: { userId: string; token: strin
       [id, userId, token, expiresAt ? expiresAt.toISOString() : null],
     );
     return ins.rows[0];
-  } catch (e: any) {
-    if (e?.code === '23505') {
+  } catch (e: unknown) {
+    if (isPgUniqueViolation(e)) {
       // Token conflict; return existing row
       const sel = await query<SessionRow>('SELECT * FROM sessions WHERE token = $1 LIMIT 1', [token]);
       return sel.rows[0];
@@ -81,6 +81,12 @@ export async function getUserIdByToken(token: string): Promise<string | null> {
     console.error('getUserIdByToken error:', e);
     return null;
   }
+}
+
+function isPgUniqueViolation(err: unknown): err is { code: string } {
+  if (typeof err !== 'object' || err === null) return false;
+  const rec = err as Record<string, unknown>;
+  return typeof rec.code === 'string' && rec.code === '23505';
 }
 
 export const SQL_SCHEMA = `

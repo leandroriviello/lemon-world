@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+// Utility helpers to fetch balances and on-chain history
 
 const hexStrip = (s: string) => (s.startsWith('0x') ? s.slice(2) : s);
 
@@ -130,4 +130,3 @@ export async function getOnchainHistory(address: string, limit = 10): Promise<On
     return [];
   }
 }
-
