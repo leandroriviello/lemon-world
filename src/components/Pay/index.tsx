@@ -50,7 +50,7 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
       try {
         const r = await fetch('/api/me/balance', { cache: 'no-store' });
         if (!r.ok) return;
-        const j = (await r.json()) as { balance?: number };
+        const j = (await r.json()) as { balance?: number | null };
         if (!stop) setWalletBalance(typeof j.balance === 'number' ? j.balance : null);
       } catch {
         if (!stop) setWalletBalance(null);

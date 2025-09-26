@@ -11,6 +11,6 @@ export async function GET() {
   }
   const address = session.user.walletAddress;
   const bal = await getErc20Balance(address);
-  return NextResponse.json({ balance: bal.value, decimals: bal.decimals });
+  if (!bal) return NextResponse.json({ balance: null });
+  return NextResponse.json({ balance: bal.value, decimals: bal.decimals, source: bal.source });
 }
-

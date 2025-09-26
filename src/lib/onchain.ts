@@ -10,57 +10,59 @@ export type BalanceResult = {
   raw: string; // hex string from RPC
   decimals: number;
   value: number; // normalized by decimals
+  source: 'base' | 'optimism';
 };
 
 /**
- * Calls the ERC-20 balanceOf(address) via Alchemy (or any RPC URL in ALCHEMY_BASE_RPC_URL).
+ * Calls the ERC-20 balanceOf(address) via Alchemy (or compatible RPC).
  */
-export async function getErc20Balance(address: string): Promise<BalanceResult> {
-  const rpcUrl =
-    process.env.ALCHEMY_BASE_RPC_URL ||
-    (process.env.ALCHEMY_API_KEY ? `https://base-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}` : '');
-  const contract = process.env.WLD_CONTRACT_BASE || '';
+export async function getErc20Balance(address: string): Promise<BalanceResult | null> {
   const decimals = Number(process.env.WLD_DECIMALS || '18');
+  const key = process.env.ALCHEMY_API_KEY || '';
+  const rpcBase = process.env.ALCHEMY_BASE_RPC_URL || (key ? `https://base-mainnet.g.alchemy.com/v2/${key}` : '');
+  const rpcOpt = process.env.ALCHEMY_OPT_RPC_URL || (key ? `https://opt-mainnet.g.alchemy.com/v2/${key}` : '');
+  const configs = [
+    { name: 'base', rpc: rpcBase, contract: process.env.WLD_CONTRACT_BASE || '' },
+    { name: 'optimism', rpc: rpcOpt, contract: process.env.WLD_CONTRACT_OPTIMISM || '' },
+  ].filter(c => c.rpc && c.contract);
 
-  if (!rpcUrl || !contract) {
-    return { raw: '0x0', decimals, value: 0 };
-  }
+  if (configs.length === 0) return null; // not configured
 
   const selector = '70a08231'; // balanceOf(address)
   const addr = toChecksumAddress(address);
   const data = `0x${selector}${pad32(addr)}`;
 
-  const body = {
-    id: 1,
-    jsonrpc: '2.0' as const,
-    method: 'eth_call',
-    params: [
-      {
-        to: contract,
-        data,
-      },
-      'latest',
-    ],
-  };
-
-  try {
-    const r = await fetch(rpcUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      cache: 'no-store',
-    });
-    const j = (await r.json()) as { result?: string };
-    const raw = j?.result || '0x0';
-    const bi = BigInt(raw);
-    const denom = BigInt(10) ** BigInt(decimals);
-    const whole = Number(bi / denom);
-    const frac = Number(bi % denom) / Number(denom);
-    const value = whole + frac;
-    return { raw, decimals, value };
-  } catch {
-    return { raw: '0x0', decimals, value: 0 };
+  for (const cfg of configs) {
+    const body = {
+      id: 1,
+      jsonrpc: '2.0' as const,
+      method: 'eth_call',
+      params: [
+        { to: cfg.contract, data },
+        'latest',
+      ],
+    };
+    try {
+      const r = await fetch(cfg.rpc, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        cache: 'no-store',
+      });
+      const j = (await r.json()) as { result?: string };
+      const raw = j?.result;
+      if (!raw) continue;
+      const bi = BigInt(raw);
+      const denom = BigInt(10) ** BigInt(decimals);
+      const whole = Number(bi / denom);
+      const frac = Number(bi % denom) / Number(denom);
+      const value = whole + frac;
+      return { raw, decimals, value, source: cfg.name as 'base' | 'optimism' };
+    } catch {
+      // try next config
+    }
   }
+  return null;
 }
 
 export type OnchainTx = {
