@@ -5,6 +5,8 @@ import {
   verifySiweMessage,
 } from '@worldcoin/minikit-js';
 import NextAuth, { type DefaultSession } from 'next-auth';
+import { ensureUserUuidByAddress, createSessionRecord } from '@/lib/db';
+import crypto from 'crypto';
 import Credentials from 'next-auth/providers/credentials';
 
 declare module 'next-auth' {
@@ -20,6 +22,7 @@ declare module 'next-auth' {
       username: string;
       profilePictureUrl: string;
     } & DefaultSession['user'];
+    sessionToken?: string;
   }
 }
 
@@ -67,12 +70,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         const result = await verifySiweMessage(finalPayload, nonce);
-        const addr = result.siweMessageData?.address || finalPayload.address;
+        const addr = (result.siweMessageData?.address || finalPayload.address || '').toLowerCase();
         if (!result.isValid || !addr) return null;
 
+        const internalId = await ensureUserUuidByAddress(addr);
         const userInfo = await MiniKit.getUserInfo(addr);
         return {
-          id: addr,
+          id: internalId,
           walletAddress: userInfo.walletAddress ?? addr,
           username: userInfo.username ?? '',
           profilePictureUrl: userInfo.profilePictureUrl ?? '',
@@ -87,6 +91,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.walletAddress = user.walletAddress;
         token.username = user.username;
         token.profilePictureUrl = user.profilePictureUrl;
+
+        if (!token.sessionToken) {
+          const sessionToken = crypto.randomUUID().replace(/-/g, '');
+          token.sessionToken = sessionToken;
+          const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+          try {
+            await createSessionRecord({ userId: user.id, token: sessionToken, expiresAt });
+          } catch (e) {
+            console.warn('Could not persist session record:', e);
+          }
+        }
       }
 
       return token;
@@ -97,6 +112,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.walletAddress = token.walletAddress as string;
         session.user.username = token.username as string;
         session.user.profilePictureUrl = token.profilePictureUrl as string;
+        session.sessionToken = token.sessionToken as string; // internal session mapping
       }
 
       return session;

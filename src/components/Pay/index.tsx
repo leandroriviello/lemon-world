@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { createPortal } from 'react-dom';
 import { MiniKit, Tokens, tokenToDecimals } from "@worldcoin/minikit-js";
 import { Button } from '@worldcoin/mini-apps-ui-kit-react';
@@ -24,6 +25,7 @@ type PayResult = {
 };
 
 export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
+  const { data: session } = useSession();
   const [amount, setAmount] = useState('');
   const [address, setAddress] = useState<string>("");
   const [btnState, setBtnState] = useState<ButtonState>(undefined);
@@ -35,10 +37,28 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
   const [addressError, setAddressError] = useState<string>("");
   const [amountError, setAmountError] = useState<string>("");
   const { t } = useLanguage();
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
 
   useEffect(() => {
     setPortalReady(true);
   }, []);
+
+  // Fetch wallet balance for the authenticated user
+  useEffect(() => {
+    let stop = false;
+    const run = async () => {
+      try {
+        const r = await fetch('/api/me/balance', { cache: 'no-store' });
+        if (!r.ok) return;
+        const j = (await r.json()) as { balance?: number };
+        if (!stop) setWalletBalance(typeof j.balance === 'number' ? j.balance : null);
+      } catch {
+        if (!stop) setWalletBalance(null);
+      }
+    };
+    if (session?.user?.walletAddress) run();
+    return () => { stop = true; };
+  }, [session?.user?.walletAddress]);
 
   const validateAddress = (value: string) => {
     const v = value.trim();
@@ -366,7 +386,9 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
 
         {/* Información de balance */}
         <div className="text-sm text-muted-foreground">
-          {t('available')}
+          {walletBalance != null
+            ? t('availableBalance', { n: new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 }).format(walletBalance) })
+            : t('available')}
         </div>
         {/* Área del botón / hint para evitar saltos de layout */}
         {!canShowButton && (
