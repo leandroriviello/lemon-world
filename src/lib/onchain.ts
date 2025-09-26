@@ -10,7 +10,7 @@ export type BalanceResult = {
   raw: string; // hex string from RPC
   decimals: number;
   value: number; // normalized by decimals
-  source: 'base' | 'optimism';
+  source: 'base' | 'optimism' | 'ethereum';
 };
 
 /**
@@ -21,9 +21,11 @@ export async function getErc20Balance(address: string): Promise<BalanceResult | 
   const key = process.env.ALCHEMY_API_KEY || '';
   const rpcBase = process.env.ALCHEMY_BASE_RPC_URL || (key ? `https://base-mainnet.g.alchemy.com/v2/${key}` : '');
   const rpcOpt = process.env.ALCHEMY_OPT_RPC_URL || (key ? `https://opt-mainnet.g.alchemy.com/v2/${key}` : '');
+  const rpcEth = process.env.ALCHEMY_ETH_RPC_URL || (key ? `https://eth-mainnet.g.alchemy.com/v2/${key}` : '');
   const configs = [
     { name: 'base', rpc: rpcBase, contract: process.env.WLD_CONTRACT_BASE || '' },
     { name: 'optimism', rpc: rpcOpt, contract: process.env.WLD_CONTRACT_OPTIMISM || '' },
+    { name: 'ethereum', rpc: rpcEth, contract: process.env.WLD_CONTRACT_ETHEREUM || '' },
   ].filter(c => c.rpc && c.contract);
 
   if (configs.length === 0) return null; // not configured
@@ -52,6 +54,8 @@ export async function getErc20Balance(address: string): Promise<BalanceResult | 
       const j = (await r.json()) as { result?: string };
       const raw = j?.result;
       if (!raw) continue;
+      // Debug log for ops
+      console.log('[balance] network=%s addr=%s contract=%s raw=%s', cfg.name, addr, cfg.contract, raw);
       const bi = BigInt(raw);
       const denom = BigInt(10) ** BigInt(decimals);
       const whole = Number(bi / denom);
@@ -63,6 +67,32 @@ export async function getErc20Balance(address: string): Promise<BalanceResult | 
     }
   }
   return null;
+}
+
+export type BalanceBreakdown = {
+  total: number;
+  decimals: number;
+  details: BalanceResult[];
+};
+
+export async function getErc20Balances(address: string): Promise<BalanceBreakdown | null> {
+  const results: BalanceResult[] = [];
+  const uniques = new Set<string>();
+  for (const r of await Promise.all([
+    getErc20Balance(address), // tries multiple networks sequentially; we'll call individual networks instead soon
+  ])) {
+    if (r) {
+      const key = `${r.source}`;
+      if (!uniques.has(key)) {
+        uniques.add(key);
+        results.push(r);
+      }
+    }
+  }
+  if (results.length === 0) return null;
+  const decimals = results[0].decimals;
+  const total = results.reduce((acc, r) => acc + r.value, 0);
+  return { total, decimals, details: results };
 }
 
 export type OnchainTx = {
