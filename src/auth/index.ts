@@ -97,7 +97,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           token.sessionToken = sessionToken;
           const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
           try {
-            await createSessionRecord({ userId: user.id, token: sessionToken, expiresAt });
+            if (typeof user.id === 'string' && user.id.length > 0) {
+              await createSessionRecord({ userId: user.id, token: sessionToken, expiresAt });
+            }
           } catch (e) {
             console.warn('Could not persist session record:', e);
           }
