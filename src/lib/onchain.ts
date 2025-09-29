@@ -157,7 +157,8 @@ async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx
         hash: string;
         to?: string;
         value?: string;
-        timeStamp: string;
+        timeStamp?: string; // Etherscan-style
+        timestamp?: string; // Some explorers use this
         tokenSymbol?: string;
         tokenDecimal?: string;
       };
@@ -177,7 +178,7 @@ async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx
         to: (tx.to || '').toLowerCase(),
         status: 'success' as const,
         hash: tx.hash,
-        timestamp: parseTs((tx as any).timeStamp || (tx as any).timestamp || 0),
+        timestamp: parseTs(tx.timeStamp ?? tx.timestamp ?? 0),
         reference: undefined,
       }));
     } catch {
