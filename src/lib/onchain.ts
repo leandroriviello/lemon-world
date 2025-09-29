@@ -124,20 +124,8 @@ export type OnchainTx = {
   reference?: string;
 };
 
-type HistoryDebug = {
-  worldscanCount?: number;
-  worldscanV2Count?: number;
-  rpcCount?: number;
-  rpcWindowsTried?: number;
-  rpcLatestBlock?: number;
-  rpcAddrTopic?: string;
-  alchemyCount?: number;
-  network: 'worldchain';
-};
-
-async function getOnchainHistoryInternal(address: string, limit = 10, wantDebug = false): Promise<{ list: OnchainTx[]; debug?: HistoryDebug }> {
-  const dbg: HistoryDebug = { network: 'worldchain' };
-  // Helper to query Etherscan/Blockscout-compatible API
+// Helper to query Etherscan/Blockscout-compatible API and map to our type
+async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx[]> {
   const fetchFrom = async (apiBase: string, apiKey: string | undefined, contract: string | undefined) => {
     const params = new URLSearchParams({
       module: 'account',
@@ -197,8 +185,7 @@ async function getOnchainHistoryInternal(address: string, limit = 10, wantDebug 
   const worldContract = envTrim(process.env.WLD_CONTRACT_WORLDCHAIN);
   if (worldApi) {
     const list = await fetchFrom(worldApi, worldKey || undefined, worldContract || undefined);
-    if (wantDebug) dbg.worldscanCount = list.length;
-    if (list.length > 0) return { list, debug: wantDebug ? dbg : undefined };
+    if (list.length > 0) return list;
     // Fallback to Blockscout v2 style if available
     try {
       const base = worldApi.replace(/\/?api\/?$/, '').trim();
@@ -258,8 +245,7 @@ async function getOnchainHistoryInternal(address: string, limit = 10, wantDebug 
           };
         };
         const mapped = items.map(mapV2).filter((x): x is OnchainTx => Boolean(x));
-        if (wantDebug) dbg.worldscanV2Count = mapped.length;
-        if (mapped.length > 0) return { list: mapped.slice(0, limit), debug: wantDebug ? dbg : undefined };
+        if (mapped.length > 0) return mapped.slice(0, limit);
       }
     } catch {
       // ignore and continue fallbacks
@@ -290,7 +276,6 @@ async function getOnchainHistoryInternal(address: string, limit = 10, wantDebug 
       const gathered: Log[] = [];
       let end = latest;
       const min = Math.max(0, latest - maxSpan);
-      if (wantDebug) { dbg.rpcLatestBlock = latest; dbg.rpcAddrTopic = addr32; }
       while (end > min && gathered.length < limit * 5) { // gather a bit extra for safety
         const start = Math.max(min, end - window + 1);
         const fromHex = '0x' + start.toString(16);
@@ -304,7 +289,6 @@ async function getOnchainHistoryInternal(address: string, limit = 10, wantDebug 
           if (Array.isArray(logsOut)) gathered.push(...logsOut);
         } catch {}
         end = start - 1;
-        if (wantDebug) dbg.rpcWindowsTried = (dbg.rpcWindowsTried || 0) + 1;
       }
       const logs: Log[] = gathered;
       if (logs.length > 0) {
@@ -341,8 +325,7 @@ async function getOnchainHistoryInternal(address: string, limit = 10, wantDebug 
           reference: undefined,
         }));
         mapped.sort((a, b) => b.timestamp - a.timestamp);
-        if (wantDebug) dbg.rpcCount = mapped.length;
-        if (mapped.length > 0) return { list: mapped.slice(0, limit), debug: wantDebug ? dbg : undefined };
+        if (mapped.length > 0) return mapped.slice(0, limit);
       }
     }
   } catch {
@@ -414,11 +397,8 @@ async function getOnchainHistoryInternal(address: string, limit = 10, wantDebug 
         ...(outRes?.transfers || []).map(mapTx).filter(Boolean) as OnchainTx[],
         ...(inRes?.transfers || []).map(mapTx).filter(Boolean) as OnchainTx[],
       ];
-      if (wantDebug) dbg.alchemyCount = list.length;
       list.sort((a, b) => b.timestamp - a.timestamp);
-      if (list.length > 0) {
-        return { list: list.slice(0, limit), debug: wantDebug ? dbg : undefined };
-      }
+      if (list.length > 0) return list.slice(0, limit);
     }
   } catch {}
 
@@ -427,22 +407,14 @@ async function getOnchainHistoryInternal(address: string, limit = 10, wantDebug 
   const baseKey = process.env.BASESCAN_API_KEY || '';
   const baseContract = process.env.WLD_CONTRACT_BASE || '';
   const list = await fetchFrom(baseApi, baseKey || undefined, baseContract || undefined);
-  if (list.length > 0) return { list, debug: wantDebug ? dbg : undefined };
+  if (list.length > 0) return list;
 
   // 3) Last resort: try Optimism Etherscan-compatible if provided via env
   const optApi = process.env.OPTIMISM_API_URL || '';
   const optKey = process.env.OPTIMISM_API_KEY || '';
   const optContract = process.env.WLD_CONTRACT_OPTIMISM || '';
-  if (optApi) return { list: await fetchFrom(optApi, optKey || undefined, optContract || undefined), debug: wantDebug ? dbg : undefined };
-  return { list: [], debug: wantDebug ? dbg : undefined };
+  if (optApi) return await fetchFrom(optApi, optKey || undefined, optContract || undefined);
+  return [];
 }
 
-export async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx[]> {
-  const { list } = await getOnchainHistoryInternal(address, limit, false);
-  return list;
-}
-
-export async function getOnchainHistoryDebug(address: string, limit = 10): Promise<{ transactions: OnchainTx[]; meta: HistoryDebug }> {
-  const { list, debug } = await getOnchainHistoryInternal(address, limit, true);
-  return { transactions: list, meta: debug as HistoryDebug };
-}
+export { getOnchainHistory };

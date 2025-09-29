@@ -89,8 +89,8 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat('es-AR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      minimumFractionDigits: 5,
+      maximumFractionDigits: 5,
     }).format(amount);
   };
 
