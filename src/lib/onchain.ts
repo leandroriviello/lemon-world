@@ -71,7 +71,7 @@ async function getBalanceFor(address: string, network: Network): Promise<Balance
     const j = (await r.json()) as { result?: string };
     const raw = j?.result;
     if (!raw) return null;
-    console.log('[balance] network=%s addr=%s contract=%s raw=%s', network, addr, cfg.contract, raw);
+    // balance fetched successfully
     const bi = BigInt(raw);
     const denom = BigInt(10) ** BigInt(decimals);
     const whole = Number(bi / denom);
@@ -79,7 +79,7 @@ async function getBalanceFor(address: string, network: Network): Promise<Balance
     const value = whole + frac;
     return { raw, decimals, value, source: network };
   } catch (e) {
-    console.warn('[balance] %s call failed:', network, e);
+    // swallow network errors and try next network
     return null;
   }
 }
