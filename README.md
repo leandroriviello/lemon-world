@@ -45,7 +45,7 @@ Notas:
 ### Historial on-chain
 
 Para leer transferencias del token se usan endpoints con API estilo Etherscan/Blockscout.
-- World Chain (preferido): `WORLDCHAIN_API_URL` (p.ej. `https://worldscan.org/api`), opcional `WORLDCHAIN_API_KEY`, `WLD_CONTRACT_WORLDCHAIN`.
+- World Chain (preferido): `WORLDCHAIN_API_URL` (p.ej. `https://api.worldscan.org/api`), opcional `WORLDCHAIN_API_KEY`, `WLD_CONTRACT_WORLDCHAIN`.
 - Base (fallback): `BASESCAN_API_URL`, `BASESCAN_API_KEY`, `WLD_CONTRACT_BASE`.
 - Optimism (opcional): `OPTIMISM_API_URL`, `OPTIMISM_API_KEY`, `WLD_CONTRACT_OPTIMISM`.
 

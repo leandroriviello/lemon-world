@@ -177,7 +177,7 @@ export async function getOnchainHistory(address: string, limit = 10): Promise<On
   };
 
   // 1) Try World Chain (Worldscan / Blockscout)
-  const worldApi = process.env.WORLDCHAIN_API_URL || 'https://worldscan.org/api';
+  const worldApi = process.env.WORLDCHAIN_API_URL || 'https://api.worldscan.org/api';
   const worldKey = process.env.WORLDCHAIN_API_KEY || '';
   const worldContract = process.env.WLD_CONTRACT_WORLDCHAIN || '';
   if (worldApi) {
