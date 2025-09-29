@@ -183,6 +183,51 @@ export async function getOnchainHistory(address: string, limit = 10): Promise<On
   if (worldApi) {
     const list = await fetchFrom(worldApi, worldKey || undefined, worldContract || undefined);
     if (list.length > 0) return list;
+    // Fallback to Blockscout v2 style if available
+    try {
+      const base = worldApi.replace(/\/?api\/?$/, '');
+      const url = new URL(`${base}/api/v2/addresses/${address}/token-transfers`);
+      url.searchParams.set('type', 'ERC-20');
+      url.searchParams.set('limit', String(Math.min(Math.max(limit, 1), 25)));
+      const r = await fetch(url.toString(), { cache: 'no-store' });
+      const j = await r.json();
+      const items = Array.isArray(j) ? j : Array.isArray(j?.items) ? j.items : [];
+      if (items.length > 0) {
+        const mapV2 = (it: any): OnchainTx | null => {
+          const hash = it?.tx_hash || it?.hash;
+          if (!hash) return null;
+          const toHash = it?.to_hash || it?.to?.hash || it?.to || '';
+          const val = String(it?.value ?? '0');
+          const dec = Number(it?.token?.decimals ?? process.env.WLD_DECIMALS ?? '18');
+          const toNumber = (v: string, d: number) => {
+            try {
+              const n = BigInt(v || '0');
+              const denom = BigInt(10) ** BigInt(d);
+              const whole = Number(n / denom);
+              const frac = Number(n % denom) / Number(denom);
+              return whole + frac;
+            } catch { return 0; }
+          };
+          const t = it?.timestamp ? Number(new Date(it.timestamp).getTime()) : Date.now();
+          // Filter by contract if provided
+          const tokenAddr = (it?.token?.address || '').toLowerCase();
+          if (worldContract && tokenAddr && tokenAddr !== worldContract.toLowerCase()) return null;
+          return {
+            id: String(hash),
+            amount: toNumber(val, dec),
+            to: String(toHash).toLowerCase(),
+            status: 'success',
+            hash: String(hash),
+            timestamp: t,
+            reference: undefined,
+          };
+        };
+        const mapped = items.map(mapV2).filter((x): x is OnchainTx => Boolean(x));
+        if (mapped.length > 0) return mapped.slice(0, limit);
+      }
+    } catch {
+      // ignore and continue fallbacks
+    }
   }
 
   // 2) Fallback to BaseScan
