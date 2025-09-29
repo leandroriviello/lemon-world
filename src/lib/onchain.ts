@@ -24,8 +24,8 @@ function networksFromEnv() {
   const map: Record<Network, { rpc: string; contract: string }> = {
     worldchain: {
       // Accept any compatible RPC; prefer explicit WORLDCHAIN RPC over Alchemy.
-      // Example (if using Alchemy): https://worldchain-mainnet.g.alchemy.com/v2/<KEY>
-      rpc: process.env.WORLDCHAIN_RPC_URL || '',
+      // Example: https://worldchain-mainnet.g.alchemy.com/v2/<KEY>
+      rpc: process.env.WORLDCHAIN_RPC_URL || (key ? `https://worldchain-mainnet.g.alchemy.com/v2/${key}` : ''),
       contract: process.env.WLD_CONTRACT_WORLDCHAIN || '',
     },
     base: {
@@ -161,7 +161,9 @@ export async function getOnchainHistory(address: string, limit = 10): Promise<On
         tokenDecimal?: string;
       };
       const arr = j.result as ScanTx[];
-      const filtered = contract ? arr : arr.filter(tx => (tx.tokenSymbol || '').toUpperCase() === 'WLD');
+      const filtered = contract
+        ? arr
+        : arr.filter(tx => ((tx.tokenSymbol || '').toUpperCase().includes('WLD')));
       return filtered.map((tx) => ({
         id: tx.hash,
         amount: toNumber(tx.value ?? '0', tx.tokenDecimal),

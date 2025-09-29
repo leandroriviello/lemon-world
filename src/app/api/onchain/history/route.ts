@@ -14,7 +14,20 @@ export async function GET(req: NextRequest) {
     }
 
     const list = await getOnchainHistory(address, limit);
-    return NextResponse.json({ transactions: list });
+    const debug = searchParams.get('debug') === '1';
+    return NextResponse.json({
+      transactions: list,
+      ...(debug
+        ? {
+            env: {
+              WORLDCHAIN_API_URL: process.env.WORLDCHAIN_API_URL || null,
+              WORLDCHAIN_RPC_URL: process.env.WORLDCHAIN_RPC_URL || null,
+              WLD_CONTRACT_WORLDCHAIN: process.env.WLD_CONTRACT_WORLDCHAIN || null,
+              ALCHEMY_API_KEY: process.env.ALCHEMY_API_KEY ? 'set' : null,
+            },
+          }
+        : {}),
+    });
   } catch {
     return NextResponse.json({ transactions: [] });
   }
