@@ -78,7 +78,7 @@ async function getBalanceFor(address: string, network: Network): Promise<Balance
     const frac = Number(bi % denom) / Number(denom);
     const value = whole + frac;
     return { raw, decimals, value, source: network };
-  } catch (e) {
+  } catch {
     // swallow network errors and try next network
     return null;
   }
