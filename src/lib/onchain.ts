@@ -124,7 +124,18 @@ export type OnchainTx = {
   reference?: string;
 };
 
-export async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx[]> {
+type HistoryDebug = {
+  worldscanCount?: number;
+  worldscanV2Count?: number;
+  rpcCount?: number;
+  rpcWindowsTried?: number;
+  rpcLatestBlock?: number;
+  rpcAddrTopic?: string;
+  network: 'worldchain';
+};
+
+async function getOnchainHistoryInternal(address: string, limit = 10, wantDebug = false): Promise<{ list: OnchainTx[]; debug?: HistoryDebug }> {
+  const dbg: HistoryDebug = { network: 'worldchain' };
   // Helper to query Etherscan/Blockscout-compatible API
   const fetchFrom = async (apiBase: string, apiKey: string | undefined, contract: string | undefined) => {
     const params = new URLSearchParams({
@@ -185,7 +196,8 @@ export async function getOnchainHistory(address: string, limit = 10): Promise<On
   const worldContract = envTrim(process.env.WLD_CONTRACT_WORLDCHAIN);
   if (worldApi) {
     const list = await fetchFrom(worldApi, worldKey || undefined, worldContract || undefined);
-    if (list.length > 0) return list;
+    if (wantDebug) dbg.worldscanCount = list.length;
+    if (list.length > 0) return { list, debug: wantDebug ? dbg : undefined };
     // Fallback to Blockscout v2 style if available
     try {
       const base = worldApi.replace(/\/?api\/?$/, '').trim();
@@ -245,7 +257,8 @@ export async function getOnchainHistory(address: string, limit = 10): Promise<On
           };
         };
         const mapped = items.map(mapV2).filter((x): x is OnchainTx => Boolean(x));
-        if (mapped.length > 0) return mapped.slice(0, limit);
+        if (wantDebug) dbg.worldscanV2Count = mapped.length;
+        if (mapped.length > 0) return { list: mapped.slice(0, limit), debug: wantDebug ? dbg : undefined };
       }
     } catch {
       // ignore and continue fallbacks
@@ -276,6 +289,7 @@ export async function getOnchainHistory(address: string, limit = 10): Promise<On
       const gathered: Log[] = [];
       let end = latest;
       const min = Math.max(0, latest - maxSpan);
+      if (wantDebug) { dbg.rpcLatestBlock = latest; dbg.rpcAddrTopic = addr32; }
       while (end > min && gathered.length < limit * 5) { // gather a bit extra for safety
         const start = Math.max(min, end - window + 1);
         const fromHex = '0x' + start.toString(16);
@@ -289,6 +303,7 @@ export async function getOnchainHistory(address: string, limit = 10): Promise<On
           if (Array.isArray(logsOut)) gathered.push(...logsOut);
         } catch {}
         end = start - 1;
+        if (wantDebug) dbg.rpcWindowsTried = (dbg.rpcWindowsTried || 0) + 1;
       }
       const logs: Log[] = gathered;
       if (logs.length > 0) {
@@ -325,7 +340,8 @@ export async function getOnchainHistory(address: string, limit = 10): Promise<On
           reference: undefined,
         }));
         mapped.sort((a, b) => b.timestamp - a.timestamp);
-        if (mapped.length > 0) return mapped.slice(0, limit);
+        if (wantDebug) dbg.rpcCount = mapped.length;
+        if (mapped.length > 0) return { list: mapped.slice(0, limit), debug: wantDebug ? dbg : undefined };
       }
     }
   } catch {
@@ -337,12 +353,22 @@ export async function getOnchainHistory(address: string, limit = 10): Promise<On
   const baseKey = process.env.BASESCAN_API_KEY || '';
   const baseContract = process.env.WLD_CONTRACT_BASE || '';
   const list = await fetchFrom(baseApi, baseKey || undefined, baseContract || undefined);
-  if (list.length > 0) return list;
+  if (list.length > 0) return { list, debug: wantDebug ? dbg : undefined };
 
   // 3) Last resort: try Optimism Etherscan-compatible if provided via env
   const optApi = process.env.OPTIMISM_API_URL || '';
   const optKey = process.env.OPTIMISM_API_KEY || '';
   const optContract = process.env.WLD_CONTRACT_OPTIMISM || '';
-  if (optApi) return fetchFrom(optApi, optKey || undefined, optContract || undefined);
-  return [];
+  if (optApi) return { list: await fetchFrom(optApi, optKey || undefined, optContract || undefined), debug: wantDebug ? dbg : undefined };
+  return { list: [], debug: wantDebug ? dbg : undefined };
+}
+
+export async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx[]> {
+  const { list } = await getOnchainHistoryInternal(address, limit, false);
+  return list;
+}
+
+export async function getOnchainHistoryDebug(address: string, limit = 10): Promise<{ transactions: OnchainTx[]; meta: HistoryDebug }> {
+  const { list, debug } = await getOnchainHistoryInternal(address, limit, true);
+  return { transactions: list, meta: debug as HistoryDebug };
 }
