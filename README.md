@@ -42,6 +42,16 @@ Notas:
 - Si una red no tiene RPC o contrato configurado, se omite.
 - `WLD_DECIMALS` (default `18`).
 
+### Historial on-chain
+
+Para leer transferencias del token se usan endpoints con API estilo Etherscan/Blockscout.
+- World Chain (preferido): `WORLDCHAIN_API_URL` (p.ej. `https://worldscan.org/api`), opcional `WORLDCHAIN_API_KEY`, `WLD_CONTRACT_WORLDCHAIN`.
+- Base (fallback): `BASESCAN_API_URL`, `BASESCAN_API_KEY`, `WLD_CONTRACT_BASE`.
+- Optimism (opcional): `OPTIMISM_API_URL`, `OPTIMISM_API_KEY`, `WLD_CONTRACT_OPTIMISM`.
+
+Para abrir el explorador desde la UI:
+- `NEXT_PUBLIC_WORLDCHAIN_EXPLORER_URL` (p.ej. `https://worldscan.org`), si no está se usa `NEXT_PUBLIC_BASE_EXPLORER_URL`.
+
 ## Deploy
 
 - Required env vars: `NEXT_PUBLIC_APP_ID`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `HMAC_SECRET_KEY`.

@@ -294,8 +294,10 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
                   <div className="pt-2">
                     <button
                       onClick={() => {
+                        const world = process.env.NEXT_PUBLIC_WORLDCHAIN_EXPLORER_URL || '';
                         const base = process.env.NEXT_PUBLIC_BASE_EXPLORER_URL || 'https://basescan.org';
-                        const explorerUrl = `${base.replace(/\/$/, '')}/tx/${(tx.hash || tx.txHash) as string}`;
+                        const root = (world || base).replace(/\/$/, '');
+                        const explorerUrl = `${root}/tx/${(tx.hash || tx.txHash) as string}`;
                         window.open(explorerUrl, '_blank', 'noopener,noreferrer');
                       }}
                       className="w-full px-3 py-2 rounded-lg bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors"

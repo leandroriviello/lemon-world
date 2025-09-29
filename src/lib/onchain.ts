@@ -124,58 +124,78 @@ export type OnchainTx = {
 };
 
 export async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx[]> {
-  // Prefer BaseScan if configured (already used elsewhere in repo)
-  const apiBase = process.env.BASESCAN_API_URL || 'https://api.basescan.org/api';
-  const apiKey = process.env.BASESCAN_API_KEY || '';
-  const wldContract = process.env.WLD_CONTRACT_BASE || '';
+  // Helper to query Etherscan/Blockscout-compatible API
+  const fetchFrom = async (apiBase: string, apiKey: string | undefined, contract: string | undefined) => {
+    const params = new URLSearchParams({
+      module: 'account',
+      action: 'tokentx',
+      address,
+      sort: 'desc',
+      page: '1',
+      offset: String(Math.min(Math.max(limit, 1), 25)),
+    });
+    if (contract) params.set('contractaddress', contract);
+    if (apiKey) params.set('apikey', apiKey);
+    try {
+      const r = await fetch(`${apiBase}?${params.toString()}`, { cache: 'no-store' });
+      const j = await r.json();
+      if (!j || (j.status && j.status !== '1') || !Array.isArray(j.result)) return [];
+      const toNumber = (v: string, decStr?: string) => {
+        try {
+          const n = BigInt(v || '0');
+          const decimals = Number(decStr || process.env.WLD_DECIMALS || '18');
+          const denom = BigInt(10) ** BigInt(decimals);
+          const whole = Number(n / denom);
+          const frac = Number(n % denom) / Number(denom);
+          return whole + frac;
+        } catch {
+          return 0;
+        }
+      };
+      type ScanTx = {
+        hash: string;
+        to?: string;
+        value?: string;
+        timeStamp: string;
+        tokenSymbol?: string;
+        tokenDecimal?: string;
+      };
+      const arr = j.result as ScanTx[];
+      const filtered = contract ? arr : arr.filter(tx => (tx.tokenSymbol || '').toUpperCase() === 'WLD');
+      return filtered.map((tx) => ({
+        id: tx.hash,
+        amount: toNumber(tx.value ?? '0', tx.tokenDecimal),
+        to: (tx.to || '').toLowerCase(),
+        status: 'success' as const,
+        hash: tx.hash,
+        timestamp: Number(tx.timeStamp) * 1000,
+        reference: undefined,
+      }));
+    } catch {
+      return [];
+    }
+  };
 
-  const params = new URLSearchParams({
-    module: 'account',
-    action: 'tokentx',
-    address,
-    sort: 'desc',
-    page: '1',
-    offset: String(Math.min(Math.max(limit, 1), 25)),
-  });
-  if (wldContract) params.set('contractaddress', wldContract);
-  if (apiKey) params.set('apikey', apiKey);
-
-  try {
-    const r = await fetch(`${apiBase}?${params.toString()}`, { cache: 'no-store' });
-    const j = await r.json();
-    if (!j || (j.status && j.status !== '1') || !Array.isArray(j.result)) return [];
-    const toNumber = (v: string, decStr?: string) => {
-      try {
-        const n = BigInt(v || '0');
-        const decimals = Number(decStr || process.env.WLD_DECIMALS || '18');
-        const denom = BigInt(10) ** BigInt(decimals);
-        const whole = Number(n / denom);
-        const frac = Number(n % denom) / Number(denom);
-        return whole + frac;
-      } catch {
-        return 0;
-      }
-    };
-    type BaseScanTx = {
-      hash: string;
-      to?: string;
-      value?: string;
-      timeStamp: string;
-      tokenSymbol?: string;
-      tokenDecimal?: string;
-    };
-    const arr = j.result as BaseScanTx[];
-    const filtered = wldContract ? arr : arr.filter(tx => (tx.tokenSymbol || '').toUpperCase() === 'WLD');
-    return filtered.map((tx) => ({
-      id: tx.hash,
-      amount: toNumber(tx.value ?? '0', tx.tokenDecimal),
-      to: (tx.to || '').toLowerCase(),
-      status: 'success' as const,
-      hash: tx.hash,
-      timestamp: Number(tx.timeStamp) * 1000,
-      reference: undefined,
-    }));
-  } catch {
-    return [];
+  // 1) Try World Chain (Worldscan / Blockscout)
+  const worldApi = process.env.WORLDCHAIN_API_URL || '';
+  const worldKey = process.env.WORLDCHAIN_API_KEY || '';
+  const worldContract = process.env.WLD_CONTRACT_WORLDCHAIN || '';
+  if (worldApi) {
+    const list = await fetchFrom(worldApi, worldKey || undefined, worldContract || undefined);
+    if (list.length > 0) return list;
   }
+
+  // 2) Fallback to BaseScan
+  const baseApi = process.env.BASESCAN_API_URL || 'https://api.basescan.org/api';
+  const baseKey = process.env.BASESCAN_API_KEY || '';
+  const baseContract = process.env.WLD_CONTRACT_BASE || '';
+  const list = await fetchFrom(baseApi, baseKey || undefined, baseContract || undefined);
+  if (list.length > 0) return list;
+
+  // 3) Last resort: try Optimism Etherscan-compatible if provided via env
+  const optApi = process.env.OPTIMISM_API_URL || '';
+  const optKey = process.env.OPTIMISM_API_KEY || '';
+  const optContract = process.env.WLD_CONTRACT_OPTIMISM || '';
+  if (optApi) return fetchFrom(optApi, optKey || undefined, optContract || undefined);
+  return [];
 }
