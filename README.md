@@ -29,6 +29,19 @@ Aplicación de envío de WLD y calculadora (USDT/ARS/COP), optimizada para corre
   - `NEXT_PUBLIC_LEMON_IOS_STORE_URL` (default App Store Lemon)
   - `NEXT_PUBLIC_LEMON_ANDROID_STORE_URL` (default Play Store Lemon)
 
+### Balance on-chain (WLD)
+
+El backend consulta el balance ERC‑20 por `balanceOf` sobre redes configuradas. Soporta:
+- World Chain: `WORLDCHAIN_RPC_URL` + `WLD_CONTRACT_WORLDCHAIN`
+- Optimism: `ALCHEMY_OPT_RPC_URL` + `WLD_CONTRACT_OPTIMISM`
+- Base: `ALCHEMY_BASE_RPC_URL` + `WLD_CONTRACT_BASE`
+- Ethereum: `ALCHEMY_ETH_RPC_URL` + `WLD_CONTRACT_ETHEREUM`
+
+Notas:
+- La búsqueda prioriza: World Chain → Optimism → Base → Ethereum.
+- Si una red no tiene RPC o contrato configurado, se omite.
+- `WLD_DECIMALS` (default `18`).
+
 ## Deploy
 
 - Required env vars: `NEXT_PUBLIC_APP_ID`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `HMAC_SECRET_KEY`.

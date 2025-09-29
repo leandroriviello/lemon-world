@@ -10,61 +10,85 @@ export type BalanceResult = {
   raw: string; // hex string from RPC
   decimals: number;
   value: number; // normalized by decimals
-  source: 'base' | 'optimism' | 'ethereum';
+  source: 'worldchain' | 'base' | 'optimism' | 'ethereum';
 };
 
 /**
  * Calls the ERC-20 balanceOf(address) via Alchemy (or compatible RPC).
  */
-export async function getErc20Balance(address: string): Promise<BalanceResult | null> {
+type Network = 'worldchain' | 'base' | 'optimism' | 'ethereum';
+
+function networksFromEnv() {
   const decimals = Number(process.env.WLD_DECIMALS || '18');
   const key = process.env.ALCHEMY_API_KEY || '';
-  const rpcBase = process.env.ALCHEMY_BASE_RPC_URL || (key ? `https://base-mainnet.g.alchemy.com/v2/${key}` : '');
-  const rpcOpt = process.env.ALCHEMY_OPT_RPC_URL || (key ? `https://opt-mainnet.g.alchemy.com/v2/${key}` : '');
-  const rpcEth = process.env.ALCHEMY_ETH_RPC_URL || (key ? `https://eth-mainnet.g.alchemy.com/v2/${key}` : '');
-  const configs = [
-    { name: 'base', rpc: rpcBase, contract: process.env.WLD_CONTRACT_BASE || '' },
-    { name: 'optimism', rpc: rpcOpt, contract: process.env.WLD_CONTRACT_OPTIMISM || '' },
-    { name: 'ethereum', rpc: rpcEth, contract: process.env.WLD_CONTRACT_ETHEREUM || '' },
-  ].filter(c => c.rpc && c.contract);
+  const map: Record<Network, { rpc: string; contract: string }> = {
+    worldchain: {
+      // Accept any compatible RPC; prefer explicit WORLDCHAIN RPC over Alchemy.
+      // Example (if using Alchemy): https://worldchain-mainnet.g.alchemy.com/v2/<KEY>
+      rpc: process.env.WORLDCHAIN_RPC_URL || '',
+      contract: process.env.WLD_CONTRACT_WORLDCHAIN || '',
+    },
+    base: {
+      rpc: process.env.ALCHEMY_BASE_RPC_URL || (key ? `https://base-mainnet.g.alchemy.com/v2/${key}` : ''),
+      contract: process.env.WLD_CONTRACT_BASE || '',
+    },
+    optimism: {
+      rpc: process.env.ALCHEMY_OPT_RPC_URL || (key ? `https://opt-mainnet.g.alchemy.com/v2/${key}` : ''),
+      contract: process.env.WLD_CONTRACT_OPTIMISM || '',
+    },
+    ethereum: {
+      rpc: process.env.ALCHEMY_ETH_RPC_URL || (key ? `https://eth-mainnet.g.alchemy.com/v2/${key}` : ''),
+      contract: process.env.WLD_CONTRACT_ETHEREUM || '',
+    },
+  };
+  return { decimals, map };
+}
 
-  if (configs.length === 0) return null; // not configured
-
+async function getBalanceFor(address: string, network: Network): Promise<BalanceResult | null> {
+  const { decimals, map } = networksFromEnv();
+  const cfg = map[network];
+  if (!cfg.rpc || !cfg.contract) return null;
   const selector = '70a08231'; // balanceOf(address)
   const addr = toChecksumAddress(address);
   const data = `0x${selector}${pad32(addr)}`;
+  const body = {
+    id: 1,
+    jsonrpc: '2.0' as const,
+    method: 'eth_call',
+    params: [
+      { to: cfg.contract, data },
+      'latest',
+    ],
+  };
+  try {
+    const r = await fetch(cfg.rpc, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      cache: 'no-store',
+    });
+    const j = (await r.json()) as { result?: string };
+    const raw = j?.result;
+    if (!raw) return null;
+    console.log('[balance] network=%s addr=%s contract=%s raw=%s', network, addr, cfg.contract, raw);
+    const bi = BigInt(raw);
+    const denom = BigInt(10) ** BigInt(decimals);
+    const whole = Number(bi / denom);
+    const frac = Number(bi % denom) / Number(denom);
+    const value = whole + frac;
+    return { raw, decimals, value, source: network };
+  } catch (e) {
+    console.warn('[balance] %s call failed:', network, e);
+    return null;
+  }
+}
 
-  for (const cfg of configs) {
-    const body = {
-      id: 1,
-      jsonrpc: '2.0' as const,
-      method: 'eth_call',
-      params: [
-        { to: cfg.contract, data },
-        'latest',
-      ],
-    };
-    try {
-      const r = await fetch(cfg.rpc, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-        cache: 'no-store',
-      });
-      const j = (await r.json()) as { result?: string };
-      const raw = j?.result;
-      if (!raw) continue;
-      // Debug log for ops
-      console.log('[balance] network=%s addr=%s contract=%s raw=%s', cfg.name, addr, cfg.contract, raw);
-      const bi = BigInt(raw);
-      const denom = BigInt(10) ** BigInt(decimals);
-      const whole = Number(bi / denom);
-      const frac = Number(bi % denom) / Number(denom);
-      const value = whole + frac;
-      return { raw, decimals, value, source: cfg.name as 'base' | 'optimism' };
-    } catch {
-      // try next config
-    }
+export async function getErc20Balance(address: string, network?: Network): Promise<BalanceResult | null> {
+  if (network) return getBalanceFor(address, network);
+  // Try in priority order: worldchain -> optimism -> base -> ethereum
+  for (const n of ['worldchain', 'optimism', 'base', 'ethereum'] as Network[]) {
+    const r = await getBalanceFor(address, n);
+    if (r) return r;
   }
   return null;
 }
@@ -76,19 +100,12 @@ export type BalanceBreakdown = {
 };
 
 export async function getErc20Balances(address: string): Promise<BalanceBreakdown | null> {
-  const results: BalanceResult[] = [];
-  const uniques = new Set<string>();
-  for (const r of await Promise.all([
-    getErc20Balance(address), // tries multiple networks sequentially; we'll call individual networks instead soon
-  ])) {
-    if (r) {
-      const key = `${r.source}`;
-      if (!uniques.has(key)) {
-        uniques.add(key);
-        results.push(r);
-      }
-    }
-  }
+  const results = (await Promise.all([
+    getErc20Balance(address, 'worldchain'),
+    getErc20Balance(address, 'optimism'),
+    getErc20Balance(address, 'base'),
+    getErc20Balance(address, 'ethereum'),
+  ])).filter((x): x is BalanceResult => Boolean(x));
   if (results.length === 0) return null;
   const decimals = results[0].decimals;
   const total = results.reduce((acc, r) => acc + r.value, 0);
