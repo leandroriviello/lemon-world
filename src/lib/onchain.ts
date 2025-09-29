@@ -131,6 +131,7 @@ type HistoryDebug = {
   rpcWindowsTried?: number;
   rpcLatestBlock?: number;
   rpcAddrTopic?: string;
+  alchemyCount?: number;
   network: 'worldchain';
 };
 
@@ -347,6 +348,79 @@ async function getOnchainHistoryInternal(address: string, limit = 10, wantDebug 
   } catch {
     // ignore and continue
   }
+
+  // 1.c) Fallback via Alchemy enhanced API (if supported)
+  try {
+    const { map } = networksFromEnv();
+    const cfg = map['worldchain'];
+    if (cfg.rpc && cfg.contract && /alchemy\.com\//i.test(cfg.rpc)) {
+      const rpc = async <T = unknown>(method: string, params: unknown[]): Promise<T> => {
+        const r = await fetch(cfg.rpc, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+        });
+        const j = await r.json();
+        return (j.result as T) || ([] as unknown as T);
+      };
+      type AlchemyTx = {
+        hash?: string;
+        to?: string;
+        from?: string;
+        rawContract?: { value?: string };
+        blockNum?: string;
+      };
+      const maxCount = '0x19'; // 25
+      const baseParams = {
+        fromBlock: '0x0',
+        toBlock: 'latest',
+        category: ['erc20'],
+        contractAddresses: [map['worldchain'].contract],
+        withMetadata: false,
+        excludeZeroValue: false,
+        maxCount,
+        order: 'desc',
+      } as const;
+      const [outRes, inRes] = await Promise.all([
+        rpc<{ transfers?: AlchemyTx[] }>('alchemy_getAssetTransfers', [{ ...baseParams, fromAddress: address }]),
+        rpc<{ transfers?: AlchemyTx[] }>('alchemy_getAssetTransfers', [{ ...baseParams, toAddress: address }]),
+      ]);
+      const toNum = (hex?: string) => {
+        try {
+          const dec = Number(envTrim(process.env.WLD_DECIMALS) || '18');
+          const denom = BigInt(10) ** BigInt(dec);
+          const v = BigInt(hex || '0x0');
+          const whole = Number(v / denom);
+          const frac = Number(v % denom) / Number(denom);
+          return whole + frac;
+        } catch { return 0; }
+      };
+      const mapTx = (t: AlchemyTx): OnchainTx | null => {
+        const h = t.hash || '';
+        if (!h) return null;
+        const tsHex = t.blockNum || '0x0';
+        const ts = parseInt(tsHex, 16) || 0;
+        return {
+          id: h,
+          amount: toNum(t.rawContract?.value),
+          to: (t.to || '').toLowerCase(),
+          status: 'success',
+          hash: h,
+          timestamp: ts ? ts * 1000 : Date.now(),
+          reference: undefined,
+        };
+      };
+      const list = [
+        ...(outRes?.transfers || []).map(mapTx).filter(Boolean) as OnchainTx[],
+        ...(inRes?.transfers || []).map(mapTx).filter(Boolean) as OnchainTx[],
+      ];
+      if (wantDebug) dbg.alchemyCount = list.length;
+      list.sort((a, b) => b.timestamp - a.timestamp);
+      if (list.length > 0) {
+        return { list: list.slice(0, limit), debug: wantDebug ? dbg : undefined };
+      }
+    }
+  } catch {}
 
   // 2) Fallback to BaseScan
   const baseApi = process.env.BASESCAN_API_URL || 'https://api.basescan.org/api';
