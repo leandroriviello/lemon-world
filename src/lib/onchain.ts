@@ -191,9 +191,23 @@ export async function getOnchainHistory(address: string, limit = 10): Promise<On
       url.searchParams.set('limit', String(Math.min(Math.max(limit, 1), 25)));
       const r = await fetch(url.toString(), { cache: 'no-store' });
       const j = await r.json();
-      const items = Array.isArray(j) ? j : Array.isArray(j?.items) ? j.items : [];
+      type BlockscoutV2Token = { address?: string; decimals?: number };
+      type BlockscoutV2Item = {
+        tx_hash?: string;
+        hash?: string;
+        to_hash?: string;
+        to?: { hash?: string } | string;
+        value?: string;
+        timestamp?: string;
+        token?: BlockscoutV2Token;
+      };
+      const items: BlockscoutV2Item[] = Array.isArray(j)
+        ? (j as BlockscoutV2Item[])
+        : Array.isArray((j as { items?: BlockscoutV2Item[] })?.items)
+        ? ((j as { items: BlockscoutV2Item[] }).items)
+        : [];
       if (items.length > 0) {
-        const mapV2 = (it: any): OnchainTx | null => {
+        const mapV2 = (it: BlockscoutV2Item): OnchainTx | null => {
           const hash = it?.tx_hash || it?.hash;
           if (!hash) return null;
           const toHash = it?.to_hash || it?.to?.hash || it?.to || '';
