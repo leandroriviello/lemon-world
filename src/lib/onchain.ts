@@ -5,6 +5,7 @@ const hexStrip = (s: string) => (s.startsWith('0x') ? s.slice(2) : s);
 const pad32 = (s: string) => hexStrip(s).padStart(64, '0');
 
 const toChecksumAddress = (addr: string) => addr.toLowerCase(); // keep simple; upstream handles checksums
+const envTrim = (v?: string | null) => (v || '').trim();
 
 export type BalanceResult = {
   raw: string; // hex string from RPC
@@ -19,26 +20,26 @@ export type BalanceResult = {
 type Network = 'worldchain' | 'base' | 'optimism' | 'ethereum';
 
 function networksFromEnv() {
-  const decimals = Number(process.env.WLD_DECIMALS || '18');
-  const key = process.env.ALCHEMY_API_KEY || '';
+  const decimals = Number(envTrim(process.env.WLD_DECIMALS) || '18');
+  const key = envTrim(process.env.ALCHEMY_API_KEY);
   const map: Record<Network, { rpc: string; contract: string }> = {
     worldchain: {
       // Accept any compatible RPC; prefer explicit WORLDCHAIN RPC over Alchemy.
       // Example: https://worldchain-mainnet.g.alchemy.com/v2/<KEY>
-      rpc: process.env.WORLDCHAIN_RPC_URL || (key ? `https://worldchain-mainnet.g.alchemy.com/v2/${key}` : ''),
-      contract: process.env.WLD_CONTRACT_WORLDCHAIN || '',
+      rpc: envTrim(process.env.WORLDCHAIN_RPC_URL) || (key ? `https://worldchain-mainnet.g.alchemy.com/v2/${key}` : ''),
+      contract: envTrim(process.env.WLD_CONTRACT_WORLDCHAIN),
     },
     base: {
-      rpc: process.env.ALCHEMY_BASE_RPC_URL || (key ? `https://base-mainnet.g.alchemy.com/v2/${key}` : ''),
-      contract: process.env.WLD_CONTRACT_BASE || '',
+      rpc: envTrim(process.env.ALCHEMY_BASE_RPC_URL) || (key ? `https://base-mainnet.g.alchemy.com/v2/${key}` : ''),
+      contract: envTrim(process.env.WLD_CONTRACT_BASE),
     },
     optimism: {
-      rpc: process.env.ALCHEMY_OPT_RPC_URL || (key ? `https://opt-mainnet.g.alchemy.com/v2/${key}` : ''),
-      contract: process.env.WLD_CONTRACT_OPTIMISM || '',
+      rpc: envTrim(process.env.ALCHEMY_OPT_RPC_URL) || (key ? `https://opt-mainnet.g.alchemy.com/v2/${key}` : ''),
+      contract: envTrim(process.env.WLD_CONTRACT_OPTIMISM),
     },
     ethereum: {
-      rpc: process.env.ALCHEMY_ETH_RPC_URL || (key ? `https://eth-mainnet.g.alchemy.com/v2/${key}` : ''),
-      contract: process.env.WLD_CONTRACT_ETHEREUM || '',
+      rpc: envTrim(process.env.ALCHEMY_ETH_RPC_URL) || (key ? `https://eth-mainnet.g.alchemy.com/v2/${key}` : ''),
+      contract: envTrim(process.env.WLD_CONTRACT_ETHEREUM),
     },
   };
   return { decimals, map };
@@ -179,15 +180,15 @@ export async function getOnchainHistory(address: string, limit = 10): Promise<On
   };
 
   // 1) Try World Chain (Worldscan / Blockscout)
-  const worldApi = process.env.WORLDCHAIN_API_URL || 'https://api.worldscan.org/api';
-  const worldKey = process.env.WORLDCHAIN_API_KEY || '';
-  const worldContract = process.env.WLD_CONTRACT_WORLDCHAIN || '';
+  const worldApi = envTrim(process.env.WORLDCHAIN_API_URL) || 'https://api.worldscan.org/api';
+  const worldKey = envTrim(process.env.WORLDCHAIN_API_KEY);
+  const worldContract = envTrim(process.env.WLD_CONTRACT_WORLDCHAIN);
   if (worldApi) {
     const list = await fetchFrom(worldApi, worldKey || undefined, worldContract || undefined);
     if (list.length > 0) return list;
     // Fallback to Blockscout v2 style if available
     try {
-      const base = worldApi.replace(/\/?api\/?$/, '');
+      const base = worldApi.replace(/\/?api\/?$/, '').trim();
       const url = new URL(`${base}/api/v2/addresses/${address}/token-transfers`);
       url.searchParams.set('type', 'ERC-20');
       url.searchParams.set('limit', String(Math.min(Math.max(limit, 1), 25)));
