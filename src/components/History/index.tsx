@@ -39,8 +39,9 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
         const url = `/api/onchain/history?address=${encodeURIComponent(addr)}&limit=10`;
         const r = await fetch(url, { cache: 'no-store' });
         const j = (await r.json()) as { transactions: Transaction[] };
+        const arr = (j.transactions || []).sort((a, b) => b.timestamp - a.timestamp);
         if (!stop) {
-          setTransactions((j.transactions || []).sort((a, b) => b.timestamp - a.timestamp));
+          setTransactions((prev) => (arr.length > 0 ? arr : prev));
           setLastUpdated(Date.now());
         }
       } catch (e) {
@@ -74,7 +75,8 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
       const url = `/api/onchain/history?address=${encodeURIComponent(addr)}&limit=10`;
       const r = await fetch(url, { cache: 'no-store' });
       const j = (await r.json()) as { transactions: Transaction[] };
-      setTransactions((j.transactions || []).sort((a, b) => b.timestamp - a.timestamp));
+      const arr = (j.transactions || []).sort((a, b) => b.timestamp - a.timestamp);
+      setTransactions((prev) => (arr.length > 0 ? arr : prev));
       setLastUpdated(Date.now());
     } catch (e) {
       console.error('manual refresh error', e);
