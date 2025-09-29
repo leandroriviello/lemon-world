@@ -271,7 +271,7 @@ export async function getOnchainHistory(address: string, limit = 10): Promise<On
       const fromHex = '0x' + from.toString(16);
       const toHex = 'latest';
       const topicTransfer = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
-      const addr32 = '0x' + pad32(address);
+      const addr32 = '0x' + pad32(toChecksumAddress(address));
       type Log = { blockNumber: string; transactionHash: string; data: string; topics: string[] };
       const logsIn = await rpc<Log[]>('eth_getLogs', [{
         fromBlock: fromHex,
