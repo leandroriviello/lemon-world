@@ -162,6 +162,12 @@ async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx
         tokenDecimal?: string;
       };
       const arr = j.result as ScanTx[];
+      const parseTs = (v: unknown) => {
+        const n = Number(v);
+        if (!Number.isFinite(n) || n <= 0) return Date.now();
+        // seconds vs milliseconds
+        return n < 1e12 ? n * 1000 : n;
+      };
       const filtered = contract
         ? arr
         : arr.filter(tx => ((tx.tokenSymbol || '').toUpperCase().includes('WLD')));
@@ -171,7 +177,7 @@ async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx
         to: (tx.to || '').toLowerCase(),
         status: 'success' as const,
         hash: tx.hash,
-        timestamp: Number(tx.timeStamp) * 1000,
+        timestamp: parseTs((tx as any).timeStamp || (tx as any).timestamp || 0),
         reference: undefined,
       }));
     } catch {
@@ -378,18 +384,31 @@ async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx
           return whole + frac;
         } catch { return 0; }
       };
+      // Try to fetch block timestamps for these transfers
+      const blocks = Array.from(new Set([...(outRes?.transfers||[]), ...(inRes?.transfers||[])]
+        .map(t => t.blockNum)
+        .filter(Boolean))) as string[];
+      const tsMap = new Map<string, number>();
+      try {
+        await Promise.all(blocks.map(async (bn) => {
+          try {
+            const b = await rpc<{ timestamp: string }>('eth_getBlockByNumber', [bn, false]);
+            if (b?.timestamp) tsMap.set(bn, parseInt(b.timestamp, 16) * 1000);
+          } catch {}
+        }));
+      } catch {}
+
       const mapTx = (t: AlchemyTx): OnchainTx | null => {
         const h = t.hash || '';
         if (!h) return null;
-        const tsHex = t.blockNum || '0x0';
-        const ts = parseInt(tsHex, 16) || 0;
+        const ts = (t.blockNum && tsMap.get(t.blockNum)) || Date.now();
         return {
           id: h,
           amount: toNum(t.rawContract?.value),
           to: (t.to || '').toLowerCase(),
           status: 'success',
           hash: h,
-          timestamp: ts ? ts * 1000 : Date.now(),
+          timestamp: ts,
           reference: undefined,
         };
       };
