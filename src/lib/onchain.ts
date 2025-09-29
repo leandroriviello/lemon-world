@@ -265,29 +265,31 @@ export async function getOnchainHistory(address: string, limit = 10): Promise<On
       };
       const latestHex = await rpc<string>('eth_blockNumber', []);
       const latest = parseInt(latestHex, 16);
-      const spanEnv = Number(process.env.WORLDCHAIN_LOG_SPAN_BLOCKS || '0');
-      const span = spanEnv > 0 ? spanEnv : Math.max(100_000, limit * 50_000); // scan recent blocks
-      const from = Math.max(0, latest - span);
-      const fromHex = '0x' + from.toString(16);
-      const toHex = 'latest';
+      const maxSpan = Number(process.env.WORLDCHAIN_LOG_MAX_SPAN_BLOCKS || '3000000');
+      const window = Number(process.env.WORLDCHAIN_LOG_WINDOW_BLOCKS || '200000');
       const topicTransfer = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
       const addr32 = '0x' + pad32(toChecksumAddress(address));
       type Log = { blockNumber: string; transactionHash: string; data: string; topics: string[] };
-      const logsIn = await rpc<Log[]>('eth_getLogs', [{
-        fromBlock: fromHex,
-        toBlock: toHex,
-        address: cfg.contract,
-        topics: [topicTransfer, null, addr32],
-      }]);
-      const logsOut = await rpc<Log[]>('eth_getLogs', [{
-        fromBlock: fromHex,
-        toBlock: toHex,
-        address: cfg.contract,
-        topics: [topicTransfer, addr32, null],
-      }]);
-      const logs: Log[] = [...(logsIn || []), ...(logsOut || [])];
+      const gathered: Log[] = [];
+      let end = latest;
+      const min = Math.max(0, latest - maxSpan);
+      while (end > min && gathered.length < limit * 5) { // gather a bit extra for safety
+        const start = Math.max(min, end - window + 1);
+        const fromHex = '0x' + start.toString(16);
+        const toHex = '0x' + end.toString(16);
+        try {
+          const [logsIn, logsOut] = await Promise.all([
+            rpc<Log[]>('eth_getLogs', [{ fromBlock: fromHex, toBlock: toHex, address: cfg.contract, topics: [topicTransfer, null, addr32] }]),
+            rpc<Log[]>('eth_getLogs', [{ fromBlock: fromHex, toBlock: toHex, address: cfg.contract, topics: [topicTransfer, addr32, null] }]),
+          ]);
+          if (Array.isArray(logsIn)) gathered.push(...logsIn);
+          if (Array.isArray(logsOut)) gathered.push(...logsOut);
+        } catch {}
+        end = start - 1;
+      }
+      const logs: Log[] = gathered;
       if (logs.length > 0) {
-        const uniqBlocks = Array.from(new Set(logs.map(l => l.blockNumber))).slice(0, 64);
+        const uniqBlocks = Array.from(new Set(logs.map(l => l.blockNumber))).slice(0, 128);
         const blockTs = new Map<string, number>();
         await Promise.all(uniqBlocks.map(async (bn) => {
           try {
@@ -306,7 +308,11 @@ export async function getOnchainHistory(address: string, limit = 10): Promise<On
           } catch { return 0; }
         };
         const parseTopicAddr = (t: string) => '0x' + hexStrip(t).slice(24).toLowerCase();
-        const mapped: OnchainTx[] = logs.map((l) => ({
+        const dedup = new Map<string, Log>();
+        for (const l of logs) {
+          dedup.set(l.transactionHash, l);
+        }
+        const mapped: OnchainTx[] = Array.from(dedup.values()).map((l) => ({
           id: l.transactionHash,
           amount: toNum(l.data || '0x0'),
           to: parseTopicAddr(l.topics?.[2] || '0x'),
