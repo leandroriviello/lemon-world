@@ -210,7 +210,12 @@ export async function getOnchainHistory(address: string, limit = 10): Promise<On
         const mapV2 = (it: BlockscoutV2Item): OnchainTx | null => {
           const hash = it?.tx_hash || it?.hash;
           if (!hash) return null;
-          const toHash = it?.to_hash || it?.to?.hash || it?.to || '';
+          const toHash = (() => {
+            if (it?.to_hash) return String(it.to_hash);
+            const t = it?.to;
+            if (typeof t === 'string') return t;
+            return t?.hash || '';
+          })();
           const val = String(it?.value ?? '0');
           const dec = Number(it?.token?.decimals ?? process.env.WLD_DECIMALS ?? '18');
           const toNumber = (v: string, d: number) => {
