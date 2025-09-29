@@ -126,7 +126,12 @@ export type OnchainTx = {
 
 // Helper to query Etherscan/Blockscout-compatible API and map to our type
 async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx[]> {
-  const fetchFrom = async (apiBase: string, apiKey: string | undefined, contract: string | undefined) => {
+  const fetchFrom = async (
+    apiBase: string,
+    apiKey: string | undefined,
+    contract: string | undefined,
+    rpcForTimestamps?: string,
+  ) => {
     const params = new URLSearchParams({
       module: 'account',
       action: 'tokentx',
@@ -159,6 +164,7 @@ async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx
         value?: string;
         timeStamp?: string; // Etherscan-style
         timestamp?: string; // Some explorers use this
+        blockNumber?: string; // hex or decimal
         tokenSymbol?: string;
         tokenDecimal?: string;
       };
@@ -172,15 +178,52 @@ async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx
       const filtered = contract
         ? arr
         : arr.filter(tx => ((tx.tokenSymbol || '').toUpperCase().includes('WLD')));
-      return filtered.map((tx) => ({
+      const normBlockTag = (bn?: string) => {
+        if (!bn) return null;
+        const s = String(bn);
+        if (s.startsWith('0x')) return s.toLowerCase();
+        const n = Number(s);
+        if (!Number.isFinite(n) || n < 0) return null;
+        return '0x' + Math.floor(n).toString(16);
+      };
+      const prelim = filtered.map((tx) => ({
         id: tx.hash,
         amount: toNumber(tx.value ?? '0', tx.tokenDecimal),
         to: (tx.to || '').toLowerCase(),
         status: 'success' as const,
         hash: tx.hash,
         timestamp: parseTs(tx.timeStamp ?? tx.timestamp ?? 0),
-        reference: undefined,
+        blockTag: normBlockTag(tx.blockNumber),
       }));
+      // If many timestamps look like "now", try to resolve via RPC block timestamps
+      const needFix = prelim.filter(p => Math.abs(Date.now() - p.timestamp) < 60_000 && p.blockTag).slice(0, 25);
+      if (rpcForTimestamps && needFix.length > 0) {
+        try {
+          const uniqueBlocks = Array.from(new Set(needFix.map(p => p.blockTag as string)));
+          const tsMap = new Map<string, number>();
+          const rpc = async <T = unknown>(method: string, params: unknown[]): Promise<T> => {
+            const r = await fetch(rpcForTimestamps, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+            });
+            const j2 = await r.json();
+            return j2.result as T;
+          };
+          await Promise.all(uniqueBlocks.map(async (bn) => {
+            try {
+              const b = await rpc<{ timestamp: string }>('eth_getBlockByNumber', [bn, false]);
+              if (b?.timestamp) tsMap.set(bn, parseInt(b.timestamp, 16) * 1000);
+            } catch {}
+          }));
+          for (const p of prelim) {
+            if (Math.abs(Date.now() - p.timestamp) < 60_000 && p.blockTag && tsMap.get(p.blockTag)) {
+              p.timestamp = tsMap.get(p.blockTag)!;
+            }
+          }
+        } catch {}
+      }
+      return prelim.map(p => ({ id: p.id, amount: p.amount, to: p.to, status: p.status, hash: p.hash, timestamp: p.timestamp, reference: undefined }));
     } catch {
       return [];
     }
@@ -191,7 +234,9 @@ async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx
   const worldKey = envTrim(process.env.WORLDCHAIN_API_KEY);
   const worldContract = envTrim(process.env.WLD_CONTRACT_WORLDCHAIN);
   if (worldApi) {
-    const list = await fetchFrom(worldApi, worldKey || undefined, worldContract || undefined);
+    const { map } = networksFromEnv();
+    const worldRpc = map.worldchain.rpc;
+    const list = await fetchFrom(worldApi, worldKey || undefined, worldContract || undefined, worldRpc || undefined);
     if (list.length > 0) return list;
     // Fallback to Blockscout v2 style if available
     try {
