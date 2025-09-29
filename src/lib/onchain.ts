@@ -359,6 +359,7 @@ async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx
         from?: string;
         rawContract?: { value?: string };
         blockNum?: string;
+        metadata?: { blockTimestamp?: string };
       };
       const maxCount = '0x19'; // 25
       const baseParams = {
@@ -366,7 +367,7 @@ async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx
         toBlock: 'latest',
         category: ['erc20'],
         contractAddresses: [map['worldchain'].contract],
-        withMetadata: false,
+        withMetadata: true,
         excludeZeroValue: false,
         maxCount,
         order: 'desc',
@@ -402,14 +403,15 @@ async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx
       const mapTx = (t: AlchemyTx): OnchainTx | null => {
         const h = t.hash || '';
         if (!h) return null;
-        const ts = (t.blockNum && tsMap.get(t.blockNum)) || Date.now();
+        const tsIso = t.metadata?.blockTimestamp;
+        const ts = tsIso ? Date.parse(tsIso) : (t.blockNum && tsMap.get(t.blockNum)) || 0;
         return {
           id: h,
           amount: toNum(t.rawContract?.value),
           to: (t.to || '').toLowerCase(),
           status: 'success',
           hash: h,
-          timestamp: ts,
+          timestamp: ts || Date.now(),
           reference: undefined,
         };
       };
