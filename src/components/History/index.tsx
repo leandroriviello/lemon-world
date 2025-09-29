@@ -221,10 +221,7 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
                       {getStatusText(tx.status)}
                     </span>
                   </div>
-                  <span className="text-right text-[11px] leading-tight text-white/60">
-                    <span className="block">{new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(tx.timestamp))}</span>
-                    <span className="block">{new Intl.DateTimeFormat('es-AR', { hour: '2-digit', minute: '2-digit' }).format(new Date(tx.timestamp))}</span>
-                  </span>
+                  {/* Right side intentionally empty: we no longer display per‑tx date/time */}
                 </div>
 
                 {/* Transaction details */}
