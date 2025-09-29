@@ -34,7 +34,10 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
     let stop = false;
     const fetchOnchain = async () => {
       try {
-        const r = await fetch('/api/me/history', { cache: 'no-store' });
+        const addr = session?.user?.walletAddress;
+        if (!addr) return;
+        const url = `/api/onchain/history?address=${encodeURIComponent(addr)}&limit=10`;
+        const r = await fetch(url, { cache: 'no-store' });
         const j = (await r.json()) as { transactions: Transaction[] };
         if (!stop) {
           setTransactions((j.transactions || []).sort((a, b) => b.timestamp - a.timestamp));
@@ -66,7 +69,10 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      const r = await fetch('/api/me/history', { cache: 'no-store' });
+      const addr = session?.user?.walletAddress;
+      if (!addr) return;
+      const url = `/api/onchain/history?address=${encodeURIComponent(addr)}&limit=10`;
+      const r = await fetch(url, { cache: 'no-store' });
       const j = (await r.json()) as { transactions: Transaction[] };
       setTransactions((j.transactions || []).sort((a, b) => b.timestamp - a.timestamp));
       setLastUpdated(Date.now());
