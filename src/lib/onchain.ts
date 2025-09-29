@@ -249,6 +249,80 @@ export async function getOnchainHistory(address: string, limit = 10): Promise<On
     }
   }
 
+  // 1.b) Fallback via RPC logs on World Chain (no external indexer)
+  try {
+    const { map } = networksFromEnv();
+    const cfg = map['worldchain'];
+    if (cfg.rpc && cfg.contract) {
+      const rpc = async <T = unknown>(method: string, params: unknown[]): Promise<T> => {
+        const r = await fetch(cfg.rpc, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+        });
+        const j = await r.json();
+        return j.result as T;
+      };
+      const latestHex = await rpc<string>('eth_blockNumber', []);
+      const latest = parseInt(latestHex, 16);
+      const spanEnv = Number(process.env.WORLDCHAIN_LOG_SPAN_BLOCKS || '0');
+      const span = spanEnv > 0 ? spanEnv : Math.max(100_000, limit * 50_000); // scan recent blocks
+      const from = Math.max(0, latest - span);
+      const fromHex = '0x' + from.toString(16);
+      const toHex = 'latest';
+      const topicTransfer = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+      const addr32 = '0x' + pad32(address);
+      type Log = { blockNumber: string; transactionHash: string; data: string; topics: string[] };
+      const logsIn = await rpc<Log[]>('eth_getLogs', [{
+        fromBlock: fromHex,
+        toBlock: toHex,
+        address: cfg.contract,
+        topics: [topicTransfer, null, addr32],
+      }]);
+      const logsOut = await rpc<Log[]>('eth_getLogs', [{
+        fromBlock: fromHex,
+        toBlock: toHex,
+        address: cfg.contract,
+        topics: [topicTransfer, addr32, null],
+      }]);
+      const logs: Log[] = [...(logsIn || []), ...(logsOut || [])];
+      if (logs.length > 0) {
+        const uniqBlocks = Array.from(new Set(logs.map(l => l.blockNumber))).slice(0, 64);
+        const blockTs = new Map<string, number>();
+        await Promise.all(uniqBlocks.map(async (bn) => {
+          try {
+            const b = await rpc<{ timestamp: string }>('eth_getBlockByNumber', [bn, false]);
+            if (b?.timestamp) blockTs.set(bn, parseInt(b.timestamp, 16) * 1000);
+          } catch {}
+        }));
+        const dec = Number(process.env.WLD_DECIMALS || '18');
+        const denom = BigInt(10) ** BigInt(dec);
+        const toNum = (hex: string) => {
+          try {
+            const n = BigInt(hex);
+            const whole = Number(n / denom);
+            const frac = Number(n % denom) / Number(denom);
+            return whole + frac;
+          } catch { return 0; }
+        };
+        const parseTopicAddr = (t: string) => '0x' + hexStrip(t).slice(24).toLowerCase();
+        const mapped: OnchainTx[] = logs.map((l) => ({
+          id: l.transactionHash,
+          amount: toNum(l.data || '0x0'),
+          to: parseTopicAddr(l.topics?.[2] || '0x'),
+          status: 'success' as const,
+          hash: l.transactionHash,
+          timestamp: blockTs.get(l.blockNumber) || Date.now(),
+          reference: undefined,
+        }));
+        mapped.sort((a, b) => b.timestamp - a.timestamp);
+        if (mapped.length > 0) return mapped.slice(0, limit);
+      }
+    }
+  } catch {
+    // ignore and continue
+  }
+
   // 2) Fallback to BaseScan
   const baseApi = process.env.BASESCAN_API_URL || 'https://api.basescan.org/api';
   const baseKey = process.env.BASESCAN_API_KEY || '';
