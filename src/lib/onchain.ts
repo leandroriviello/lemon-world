@@ -387,9 +387,17 @@ async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx
         } catch { return 0; }
       };
       // Try to fetch block timestamps for these transfers
+      const normBlockTag = (bn?: string | null) => {
+        if (!bn) return null;
+        const s = String(bn);
+        if (s.startsWith('0x')) return s.toLowerCase();
+        const n = Number(s);
+        if (!Number.isFinite(n) || n < 0) return null;
+        return '0x' + Math.floor(n).toString(16);
+      };
       const blocks = Array.from(new Set([...(outRes?.transfers||[]), ...(inRes?.transfers||[])]
-        .map(t => t.blockNum)
-        .filter(Boolean))) as string[];
+        .map(t => normBlockTag(t.blockNum))
+        .filter((x): x is string => Boolean(x)))) as string[];
       const tsMap = new Map<string, number>();
       try {
         await Promise.all(blocks.map(async (bn) => {
@@ -404,7 +412,8 @@ async function getOnchainHistory(address: string, limit = 10): Promise<OnchainTx
         const h = t.hash || '';
         if (!h) return null;
         const tsIso = t.metadata?.blockTimestamp;
-        const ts = tsIso ? Date.parse(tsIso) : (t.blockNum && tsMap.get(t.blockNum)) || 0;
+        const bnHex = normBlockTag(t.blockNum);
+        const ts = tsIso ? Date.parse(tsIso) : (bnHex ? tsMap.get(bnHex) : undefined) || 0;
         return {
           id: h,
           amount: toNum(t.rawContract?.value),
