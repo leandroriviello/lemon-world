@@ -3,13 +3,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLanguage } from '@/providers/Language';
 
-type Vs = 'usdt' | 'ars' | 'cop';
+type Vs = 'usdt' | 'ars' | 'cop' | 'pen' | 'rea';
 
 type Prices = {
   usd?: number;
   usdt?: number;
   ars?: number;
   cop?: number;
+  pen?: number;
+  rea?: number; // BRL
 };
 
 export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
@@ -25,7 +27,7 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
       setLoading(true);
       setError('');
       // Coingecko simple price
-      const url = 'https://api.coingecko.com/api/v3/simple/price?ids=worldcoin-wld&vs_currencies=usd,usdt,ars,cop';
+      const url = 'https://api.coingecko.com/api/v3/simple/price?ids=worldcoin-wld&vs_currencies=usd,usdt,ars,cop,pen,brl';
       const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error('prices');
       const json = await res.json();
@@ -35,6 +37,8 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
         usdt: Number(p.usdt) || Number(p.usd) || undefined, // fallback a USD
         ars: Number(p.ars) || undefined,
         cop: Number(p.cop) || undefined,
+        pen: Number(p.pen) || undefined,
+        rea: Number(p.brl) || undefined,
       });
     } catch (e) {
       console.error(e);
@@ -55,8 +59,19 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
     const rate = prices?.[vs];
     if (!rate) return '';
     const val = parsedAmount * rate * 0.95; // -5% aprox comisiones
-    // Formato compacto sin notación científica
-    return new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(val);
+    // Fracción por moneda
+    const digits = (
+      vs === 'pen' ? { minimumFractionDigits: 1, maximumFractionDigits: 1 }
+      : vs === 'rea' ? { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+      : { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+    );
+    const sym = (
+      vs === 'pen' ? 'S/' :
+      vs === 'rea' ? 'R$' :
+      '$'
+    );
+    const num = new Intl.NumberFormat('es-AR', digits).format(val);
+    return `${sym} ${num}`;
   }, [parsedAmount, prices, vs]);
 
   return (
@@ -101,7 +116,7 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium text-foreground">{t('calcReceive')}</label>
             <div className="inline-flex rounded-full overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-              {(['usdt','ars','cop'] as Vs[]).map((k) => (
+              {(['usdt','ars','cop','pen','rea'] as Vs[]).map((k) => (
                 <button
                   key={k}
                   type="button"

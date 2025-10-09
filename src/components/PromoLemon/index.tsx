@@ -30,7 +30,7 @@ function detectCountry(): Country {
 export const PromoLemon = () => {
   const [open, setOpen] = useState(false);
   const [country, setCountry] = useState<Country>('OTHER');
-  const [dismissed, setDismissed] = useState(false);
+  const [temporarilyHidden, setTemporarilyHidden] = useState(false);
 
   useEffect(() => {
     setCountry(detectCountry());
@@ -43,12 +43,12 @@ export const PromoLemon = () => {
     return '';
   }, [country]);
 
-  if (country === 'OTHER' || dismissed) return null;
+  if (country === 'OTHER') return null;
 
   return (
     <>
       {/* Floating button on the right */}
-      <div className="fixed right-4 top-1/2 -translate-y-1/2 z-[999]">
+      <div className={`fixed right-4 top-1/2 -translate-y-1/2 z-[999] transition-opacity ${temporarilyHidden ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}> 
         <div
           role="button"
           tabIndex={0}
@@ -65,7 +65,7 @@ export const PromoLemon = () => {
           {/* Close icon over the pill */}
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
+            onClick={(e) => { e.stopPropagation(); setTemporarilyHidden(true); setTimeout(() => setTemporarilyHidden(false), 5000); }}
             className="absolute -right-2 -top-2 h-6 w-6 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white text-xs"
             aria-label="Cerrar"
           >
