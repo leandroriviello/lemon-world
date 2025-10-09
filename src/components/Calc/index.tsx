@@ -72,14 +72,16 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
   }, []);
 
   const parsedAmount = useMemo(() => Number(amountWLD) || 0, [amountWLD]);
-  const labelFor = (k: Vs) => (
-    k === 'pen' ? 'S/' :
-    k === 'rea' ? 'R$' :
-    k === 'usdt' ? 'USDT' :
-    k === 'ars' ? '$ ARS' :
-    k === 'cop' ? '$ COP' :
-    k.toUpperCase()
-  );
+  const labelFor = (k: Vs): string => {
+    const map: Record<Vs, string> = {
+      usdt: 'USDT',
+      ars: '$ ARS',
+      cop: '$ COP',
+      pen: 'S/',
+      rea: 'R$',
+    };
+    return map[k];
+  };
   const converted = useMemo(() => {
     const rate = prices?.[vs];
     if (!rate) return '';

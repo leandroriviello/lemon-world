@@ -40,7 +40,6 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
         if (!Number.isNaN(n)) setVisibleCount(Math.max(2, n));
       }
     } catch {}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Persist visible count preference
