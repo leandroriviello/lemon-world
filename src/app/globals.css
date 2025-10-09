@@ -165,3 +165,7 @@
   100% { box-shadow: 0 8px 22px rgba(255,209,0,0.35), inset 0 1px 0 rgba(255,255,255,0.70); }
 }
 .glow-pop { animation: glowPop 260ms ease-out 1; }
+
+/* Hide horizontal scrollbar for currency selector */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

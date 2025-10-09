@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useLanguage } from '@/providers/Language';
 
 type Country = 'AR' | 'CO' | 'PE' | 'OTHER';
 
@@ -31,6 +32,7 @@ export const PromoLemon = () => {
   const [open, setOpen] = useState(false);
   const [country, setCountry] = useState<Country>('OTHER');
   const [temporarilyHidden, setTemporarilyHidden] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     setCountry(detectCountry());
@@ -60,7 +62,7 @@ export const PromoLemon = () => {
           aria-label="¿Aún no tienes Lemon?"
         >
           <span className="block leading-tight">
-            ¿Aún no tienes<br/>Lemon? 🍋
+            {t('promoLine1')}<br/>{t('promoLine2')}
           </span>
           {/* Close icon over the pill */}
           <button

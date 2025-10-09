@@ -115,13 +115,13 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium text-foreground">{t('calcReceive')}</label>
-            <div className="inline-flex rounded-full overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+            <div className="flex rounded-full border border-white/10 bg-white/5 backdrop-blur-sm p-0.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] overflow-x-auto whitespace-nowrap gap-1 no-scrollbar">
               {(['usdt','ars','cop','pen','rea'] as Vs[]).map((k) => (
                 <button
                   key={k}
                   type="button"
                   onClick={() => setVs(k)}
-                  className={`px-3 py-1.5 text-xs font-semibold transition-all rounded-full ${
+                  className={`px-3 py-1.5 text-xs font-semibold transition-all rounded-full shrink-0 ${
                     vs === k
                       ? 'text-black bg-[linear-gradient(180deg,#FFE566_0%,#FFD100_55%,#E6B800_100%)] shadow-[0_8px_22px_rgba(255,209,0,0.35),inset_0_1px_0_rgba(255,255,255,0.7)] ring-1 ring-black/5'
                       : 'text-white/85 bg-white/0 hover:bg-white/10 active:scale-[0.98]'
