@@ -72,6 +72,14 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
   }, []);
 
   const parsedAmount = useMemo(() => Number(amountWLD) || 0, [amountWLD]);
+  const labelFor = (k: Vs) => (
+    k === 'pen' ? 'S/' :
+    k === 'rea' ? 'R$' :
+    k === 'usdt' ? 'USDT' :
+    k === 'ars' ? '$ ARS' :
+    k === 'cop' ? '$ COP' :
+    k.toUpperCase()
+  );
   const converted = useMemo(() => {
     const rate = prices?.[vs];
     if (!rate) return '';
@@ -151,7 +159,7 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
               aria-haspopup="listbox"
               aria-expanded={vsMenuOpen}
             >
-              <span>{vs.toUpperCase()}</span>
+              <span>{labelFor(vs)}</span>
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                 <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -175,7 +183,7 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
                         : 'text-white/90 hover:bg-white/10'
                     }`}
                   >
-                    {k.toUpperCase()}
+                    {labelFor(k)}
                   </button>
                 ))}
               </div>
