@@ -132,46 +132,10 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium text-foreground">{t('calcReceive')}</label>
-            <div ref={vsRef} className="relative">
-              <button
-                type="button"
-                onClick={() => setVsMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full
-                           bg-white/10 border border-white/10 backdrop-blur-sm text-white hover:bg-white/15
-                           shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
-                aria-haspopup="listbox"
-                aria-expanded={vsMenuOpen}
-              >
-                {vs.toUpperCase()}
-                <span className="inline-block h-2 w-2 rounded-full bg-yellow-300" />
-              </button>
-              {vsMenuOpen && (
-                <div
-                  role="listbox"
-                  className="absolute right-0 mt-2 min-w-28 rounded-xl border border-white/10 bg-white/10 backdrop-blur-md p-1 z-50
-                             shadow-[0_8px_30px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.08)]"
-                >
-                  {(['usdt','ars','cop','pen','rea'] as Vs[]).map((k) => (
-                    <button
-                      key={k}
-                      role="option"
-                      aria-selected={vs === k}
-                      onClick={() => { setVs(k); setVsMenuOpen(false); }}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
-                        vs === k
-                          ? 'text-black bg-[linear-gradient(180deg,#FFE566_0%,#FFD100_55%,#E6B800_100%)]'
-                          : 'text-white/90 hover:bg-white/10'
-                      }`}
-                    >
-                      {k.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <div />
           </div>
 
-          <div className="relative">
+          <div ref={vsRef} className="relative">
             <input
               type="text"
               value={converted}
@@ -179,9 +143,43 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
               placeholder={loading ? '...' : (error ? '—' : '0')}
               className="w-full h-12 pr-24 pl-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-foreground placeholder:text-muted-foreground focus:outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
             />
-            <span className="absolute inset-y-0 right-3 my-auto h-7 inline-flex items-center text-sm text-muted-foreground">
-              {vs.toUpperCase()}
-            </span>
+            <button
+              type="button"
+              onClick={() => setVsMenuOpen((v) => !v)}
+              className="absolute inset-y-0 right-2 my-auto h-9 inline-flex items-center gap-2 px-3 rounded-xl text-xs font-semibold
+                         bg-white/10 border border-white/10 backdrop-blur-sm text-white hover:bg-white/15"
+              aria-haspopup="listbox"
+              aria-expanded={vsMenuOpen}
+            >
+              <span>{vs.toUpperCase()}</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+
+            {vsMenuOpen && (
+              <div
+                role="listbox"
+                className="absolute right-2 top-full mt-2 min-w-28 rounded-xl border border-white/10 bg-white/10 backdrop-blur-md p-1 z-50
+                           shadow-[0_8px_30px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.08)]"
+              >
+                {(['usdt','ars','cop','pen','rea'] as Vs[]).map((k) => (
+                  <button
+                    key={k}
+                    role="option"
+                    aria-selected={vs === k}
+                    onClick={() => { setVs(k); setVsMenuOpen(false); }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                      vs === k
+                        ? 'text-black bg-[linear-gradient(180deg,#FFE566_0%,#FFD100_55%,#E6B800_100%)]'
+                        : 'text-white/90 hover:bg-white/10'
+                    }`}
+                  >
+                    {k.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
         <p className="text-xs text-muted-foreground">{t('calcImportant')}</p>
