@@ -23,6 +23,36 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
   const { t } = useLanguage();
   const [vsMenuOpen, setVsMenuOpen] = useState(false);
   const vsRef = useRef<HTMLDivElement | null>(null);
+  type CC = 'AR' | 'CO' | 'PE' | 'BR' | 'OTHER';
+  const detectCountry = (): CC => {
+    try {
+      const nav: Navigator | undefined = typeof navigator !== 'undefined' ? navigator : undefined;
+      const langs = ((nav?.languages as unknown as string[]) || []).concat(nav?.language || '').filter(Boolean);
+      const hit = langs.find((l) => /-(AR|CO|PE|BR)/i.test(l));
+      if (hit) {
+        const m = hit.toUpperCase().match(/-(AR|CO|PE|BR)/);
+        if (m) return (m[1] as CC);
+      }
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      const T = tz.toUpperCase();
+      if (T.includes('BUENOS') || T.includes('ARGENTINA')) return 'AR';
+      if (T.includes('BOGOTA')) return 'CO';
+      if (T.includes('LIMA')) return 'PE';
+      if (T.includes('SAO') || T.includes('SAO_PAULO') || T.includes('AMERICA/SAO_PAULO')) return 'BR';
+    } catch {}
+    return 'OTHER';
+  };
+  const country = useMemo(() => detectCountry(), []);
+  const currencyOrder = useMemo<Vs[]>(() => {
+    const base: Vs[] = ['usdt','ars','cop','pen','rea'];
+    switch (country) {
+      case 'AR': return ['ars','usdt','cop','pen','rea'];
+      case 'CO': return ['cop','usdt','ars','pen','rea'];
+      case 'PE': return ['pen','usdt','ars','cop','rea'];
+      case 'BR': return ['rea','usdt','ars','cop','pen'];
+      default: return base;
+    }
+  }, [country]);
 
   const fetchPrices = async () => {
     try {
@@ -79,6 +109,16 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
       cop: '$ COP',
       pen: 'S/',
       rea: 'R$',
+    };
+    return map[k];
+  };
+  const flagFor = (k: Vs): string => {
+    const map: Record<Vs, string> = {
+      usdt: '🇺🇸',
+      ars: '🇦🇷',
+      cop: '🇨🇴',
+      pen: '🇵🇪',
+      rea: '🇧🇷',
     };
     return map[k];
   };
@@ -160,12 +200,13 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
                          bg-white/10 border border-white/10 backdrop-blur-sm text-white hover:bg-white/15"
               aria-haspopup="listbox"
               aria-expanded={vsMenuOpen}
-            >
-              <span>{labelFor(vs)}</span>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
+              >
+                <span className="text-base leading-none">{flagFor(vs)}</span>
+                <span>{labelFor(vs)}</span>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                  <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
 
             {vsMenuOpen && (
               <div
@@ -173,19 +214,20 @@ export const Calc = ({ hideHeader }: { hideHeader?: boolean }) => {
                 className="absolute right-2 top-full mt-2 min-w-28 rounded-xl border border-white/10 bg-white/10 backdrop-blur-md p-1 z-50
                            shadow-[0_8px_30px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.08)]"
               >
-                {(['usdt','ars','cop','pen','rea'] as Vs[]).map((k) => (
+                {currencyOrder.map((k) => (
                   <button
                     key={k}
                     role="option"
                     aria-selected={vs === k}
                     onClick={() => { setVs(k); setVsMenuOpen(false); }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                    className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center gap-2 ${
                       vs === k
                         ? 'text-black bg-[linear-gradient(180deg,#FFE566_0%,#FFD100_55%,#E6B800_100%)]'
                         : 'text-white/90 hover:bg-white/10'
                     }`}
                   >
-                    {labelFor(k)}
+                    <span className="text-base leading-none">{flagFor(k)}</span>
+                    <span>{labelFor(k)}</span>
                   </button>
                 ))}
               </div>
