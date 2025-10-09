@@ -388,6 +388,11 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
               }
               // normalize leading dot -> 0.
               if (v.startsWith('.')) v = '0' + v;
+              // enforce minimum 0.001 if value > 0
+              const n = Number(v);
+              if (!Number.isNaN(n) && n > 0 && n < 0.001) {
+                v = '0.001';
+              }
               setAmount(v);
               if (amountError) setAmountError("");
             }}

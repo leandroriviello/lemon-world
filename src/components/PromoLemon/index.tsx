@@ -15,6 +15,14 @@ function detectCountry(): Country {
       const m = match.toUpperCase().match(/-(AR|CO|PE)/);
       if (m && (m[1] === 'AR' || m[1] === 'CO' || m[1] === 'PE')) return m[1] as Country;
     }
+    // Fallback: timezone heuristic
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      const tzu = tz.toUpperCase();
+      if (tzu.includes('BUENOS') || tzu.includes('ARGENTINA')) return 'AR';
+      if (tzu.includes('BOGOTA')) return 'CO';
+      if (tzu.includes('LIMA')) return 'PE';
+    } catch {}
   } catch {}
   return 'OTHER';
 }
@@ -104,4 +112,3 @@ export const PromoLemon = () => {
 };
 
 export default PromoLemon;
-
