@@ -81,6 +81,10 @@ const dict: Dict = {
     loadMore: "Cargar más...",
     promoLine1: "¿Aún no tienes",
     promoLine2: "Lemon? 🍋",
+    promoTitle: "¡Registrate y gana 1 USD!",
+    promoDesc: "Descarga la app, registrate y cuando te pregunte quien te invitó pon el siguiente código:",
+    promoCopy: "COPIAR",
+    promoDownload: "Descarga la app",
     footer: "Lemon Planet no tiene relación ni con Lemon ni con Worldcoin",
   },
   en: {
@@ -157,6 +161,10 @@ const dict: Dict = {
     loadMore: "Load more...",
     promoLine1: "Don't have",
     promoLine2: "Lemon yet? 🍋",
+    promoTitle: "Sign up and earn 1 USD!",
+    promoDesc: "Download the app, sign up, and when it asks who invited you, enter the following code:",
+    promoCopy: "COPY",
+    promoDownload: "Download the app",
     footer: "Lemon Planet is not affiliated with Lemon or Worldcoin",
   },
   pt: {
@@ -233,6 +241,10 @@ const dict: Dict = {
     loadMore: "Carregar mais...",
     promoLine1: "Ainda não tem",
     promoLine2: "Lemon? 🍋",
+    promoTitle: "Cadastre-se e ganhe 1 USD!",
+    promoDesc: "Baixe o app, cadastre-se e quando perguntar quem te convidou, insira o seguinte código:",
+    promoCopy: "COPIAR",
+    promoDownload: "Baixe o app",
     footer: "Lemon Planet não tem relação com Lemon nem com Worldcoin",
   },
 };

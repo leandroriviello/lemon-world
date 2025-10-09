@@ -59,7 +59,7 @@ export const PromoLemon = () => {
           className="relative rounded-2xl px-4 py-3 text-sm font-semibold shadow-lg text-white text-left cursor-pointer select-none
                      bg-white/10 border border-white/10 backdrop-blur-md
                      ring-1 ring-white/10 hover:bg-white/15 transition"
-          aria-label="¿Aún no tienes Lemon?"
+          aria-label={`${t('promoLine1')} ${t('promoLine2')}`}
         >
           <span className="block leading-tight">
             {t('promoLine1')}<br/>{t('promoLine2')}
@@ -92,9 +92,9 @@ export const PromoLemon = () => {
             </button>
 
             <div className="space-y-4">
-              <h2 className="text-xl font-bold">¡Registrate y gana 1 USD!</h2>
+              <h2 className="text-xl font-bold">{t('promoTitle')}</h2>
               <p className="text-sm text-white/80">
-                Descarga la app, registrate y cuando te pregunte quien te invitó pon el siguiente código:
+                {t('promoDesc')}
               </p>
 
               {/* Invite code button */}
@@ -110,7 +110,7 @@ export const PromoLemon = () => {
                     }}
                     className="ml-3 px-3 py-1 rounded-lg bg-black/5 text-black text-xs font-bold hover:bg-black/10"
                   >
-                    COPIAR
+                    {t('promoCopy')}
                   </button>
                 </div>
               </div>
@@ -125,7 +125,7 @@ export const PromoLemon = () => {
                              ring-1 ring-black/5 shadow-[0_10px_30px_rgba(0,240,104,0.35),inset_0_1px_0_rgba(255,255,255,0.7)]
                              hover:shadow-[0_14px_34px_rgba(0,240,104,0.45),inset_0_1px_0_rgba(255,255,255,0.9)] transition"
                 >
-                  Descarga la app
+                  {t('promoDownload')}
                 </a>
               </div>
             </div>
