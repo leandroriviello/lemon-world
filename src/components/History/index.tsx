@@ -29,6 +29,24 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState<number>(2);
+  const STORAGE_KEY = 'historyVisibleCount';
+
+  // Restore visible count preference
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const n = parseInt(saved, 10);
+        if (!Number.isNaN(n)) setVisibleCount(Math.max(2, n));
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist visible count preference
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_KEY, String(visibleCount)); } catch {}
+  }, [visibleCount]);
 
   // Fetch on-chain transactions: last 10 transfers for the current wallet
   useEffect(() => {
@@ -67,6 +85,14 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
     }, 5000);
     return () => { stop = true; clearInterval(iv); };
   }, [session?.user?.walletAddress]);
+
+  // Clamp visible count when transactions change
+  useEffect(() => {
+    setVisibleCount((prev) => {
+      if (transactions.length <= 0) return 2; // default when empty
+      return Math.min(Math.max(2, prev), transactions.length);
+    });
+  }, [transactions.length]);
 
   const onRefresh = async () => {
     setRefreshing(true);
