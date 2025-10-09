@@ -31,14 +31,9 @@ export const PromoLemon = () => {
   const [open, setOpen] = useState(false);
   const [country, setCountry] = useState<Country>('OTHER');
   const [dismissed, setDismissed] = useState(false);
-  const STORAGE_KEY = 'promoLemonDismissed';
 
   useEffect(() => {
     setCountry(detectCountry());
-    try {
-      const d = localStorage.getItem(STORAGE_KEY);
-      if (d === '1') setDismissed(true);
-    } catch {}
   }, []);
 
   const inviteCode = useMemo(() => {
@@ -70,7 +65,7 @@ export const PromoLemon = () => {
           {/* Close icon over the pill */}
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); setDismissed(true); try { localStorage.setItem(STORAGE_KEY, '1'); } catch {} }}
+            onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
             className="absolute -right-2 -top-2 h-6 w-6 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white text-xs"
             aria-label="Cerrar"
           >
