@@ -28,6 +28,7 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState<number>(2);
 
   // Fetch on-chain transactions: last 10 transfers for the current wallet
   useEffect(() => {
@@ -203,7 +204,7 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
           </div>
         ) : (
           <div className="space-y-3">
-            {transactions.map((tx) => (
+            {transactions.slice(0, visibleCount).map((tx) => (
               <div
                 key={(tx.id || tx.txHash || tx.transaction_id || tx.reference || Math.random().toString(36)).toString()}
                 className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3"
@@ -313,6 +314,14 @@ export const History = ({ hideHeader }: { hideHeader?: boolean }) => {
                 )}
               </div>
             ))}
+            {transactions.length > visibleCount && (
+              <button
+                onClick={() => setVisibleCount((prev) => Math.min(prev + 3, transactions.length))}
+                className="w-full mt-2 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors"
+              >
+                {t('loadMore')}
+              </button>
+            )}
           </div>
         )}
       </div>

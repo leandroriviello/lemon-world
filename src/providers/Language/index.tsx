@@ -78,6 +78,7 @@ const dict: Dict = {
     refresh: "Actualizar",
     refreshing: "Actualizando...",
     offchainConfirmed: "Confirmado (off-chain)",
+    loadMore: "Cargar más...",
     footer: "Lemon Planet no tiene relación ni con Lemon ni con Worldcoin",
   },
   en: {
@@ -151,6 +152,7 @@ const dict: Dict = {
     refresh: "Refresh",
     refreshing: "Refreshing...",
     offchainConfirmed: "Confirmed (off-chain)",
+    loadMore: "Load more...",
     footer: "Lemon Planet is not affiliated with Lemon or Worldcoin",
   },
   pt: {
@@ -224,6 +226,7 @@ const dict: Dict = {
     refresh: "Atualizar",
     refreshing: "Atualizando...",
     offchainConfirmed: "Confirmado (off-chain)",
+    loadMore: "Carregar mais...",
     footer: "Lemon Planet não tem relação com Lemon nem com Worldcoin",
   },
 };
