@@ -7,7 +7,6 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import ClientProviders from "@/providers";
 import { LanguageProvider, useLanguage } from "@/providers/Language";
 import "./globals.css";
-import { PromoLemon } from "@/components/PromoLemon";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
@@ -28,7 +27,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 {children}
                 <FooterDisclaimer />
               </div>
-              <PromoLemon />
             </div>
           </LanguageProvider>
         </ClientProviders>

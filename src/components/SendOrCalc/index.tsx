@@ -7,6 +7,7 @@ import { Calc } from '@/components/Calc';
 import { History } from '@/components/History';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { useLanguage } from '@/providers/Language';
+import { PromoLemon } from '@/components/PromoLemon';
 
 type View = 'send' | 'calc' | 'history';
 
@@ -195,6 +196,8 @@ export const SendOrCalc = () => {
           </div>
         </div>
       </div>
+      {/* Floating promo only on main menu (send) */}
+      {view === 'send' && <PromoLemon />}
     </div>
   );
 };

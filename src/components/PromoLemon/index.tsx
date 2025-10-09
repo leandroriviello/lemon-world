@@ -30,9 +30,15 @@ function detectCountry(): Country {
 export const PromoLemon = () => {
   const [open, setOpen] = useState(false);
   const [country, setCountry] = useState<Country>('OTHER');
+  const [dismissed, setDismissed] = useState(false);
+  const STORAGE_KEY = 'promoLemonDismissed';
 
   useEffect(() => {
     setCountry(detectCountry());
+    try {
+      const d = localStorage.getItem(STORAGE_KEY);
+      if (d === '1') setDismissed(true);
+    } catch {}
   }, []);
 
   const inviteCode = useMemo(() => {
@@ -42,20 +48,36 @@ export const PromoLemon = () => {
     return '';
   }, [country]);
 
-  if (country === 'OTHER') return null;
+  if (country === 'OTHER' || dismissed) return null;
 
   return (
     <>
       {/* Floating button on the right */}
-      <button
-        onClick={() => setOpen(true)}
-        className="fixed right-4 top-1/2 -translate-y-1/2 z-[999] rounded-full px-4 py-3 text-sm font-semibold shadow-lg
-                   bg-[linear-gradient(180deg,#FFE566_0%,#FFD100_55%,#E6B800_100%)] text-black
-                   ring-1 ring-black/5 hover:shadow-xl transition"
-        aria-label="¿Aún no tienes Lemon?"
-      >
-        ¿Aún no tienes Lemon?
-      </button>
+      <div className="fixed right-4 top-1/2 -translate-y-1/2 z-[999]">
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setOpen(true)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setOpen(true); }}
+          className="relative rounded-2xl px-4 py-3 text-sm font-semibold shadow-lg text-white text-left cursor-pointer select-none
+                     bg-white/10 border border-white/10 backdrop-blur-md
+                     ring-1 ring-white/10 hover:bg-white/15 transition"
+          aria-label="¿Aún no tienes Lemon?"
+        >
+          <span className="block leading-tight">
+            ¿Aún no tienes<br/>Lemon? 🍋
+          </span>
+          {/* Close icon over the pill */}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setDismissed(true); try { localStorage.setItem(STORAGE_KEY, '1'); } catch {} }}
+            className="absolute -right-2 -top-2 h-6 w-6 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white text-xs"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
 
       {open && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center">
@@ -73,24 +95,30 @@ export const PromoLemon = () => {
             </button>
 
             <div className="space-y-4">
-              <h2 className="text-xl font-bold">¡Registrate ahora y gana 1 USD!</h2>
+              <h2 className="text-xl font-bold">¡Registrate y gana 1 USD!</h2>
               <p className="text-sm text-white/80">
                 Descarga la app, registrate y cuando te pregunte quien te invitó pon el siguiente código:
               </p>
 
               {/* Invite code button */}
               <div>
-                <button
-                  type="button"
-                  className="w-full h-12 rounded-xl font-semibold text-black
-                             bg-[linear-gradient(180deg,#FFFFFF_0%,#EDEDED_100%)] shadow-md"
+                <div
+                  className="w-full h-12 rounded-xl font-semibold text-black bg-white flex items-center justify-between px-4 shadow-md"
                 >
-                  {inviteCode}
-                </button>
+                  <span>{inviteCode}</span>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try { await navigator.clipboard.writeText(inviteCode); } catch {}
+                    }}
+                    className="ml-3 px-3 py-1 rounded-lg bg-black/5 text-black text-xs font-bold hover:bg-black/10"
+                  >
+                    COPIAR
+                  </button>
+                </div>
               </div>
 
               <div className="pt-2">
-                <p className="text-sm text-white/80 mb-2">Descarga la app ahora:</p>
                 <a
                   href="https://lemon.go.link/jyKWs"
                   target="_blank"
@@ -100,7 +128,7 @@ export const PromoLemon = () => {
                              ring-1 ring-black/5 shadow-[0_10px_30px_rgba(0,240,104,0.35),inset_0_1px_0_rgba(255,255,255,0.7)]
                              hover:shadow-[0_14px_34px_rgba(0,240,104,0.45),inset_0_1px_0_rgba(255,255,255,0.9)] transition"
                 >
-                  Descargar
+                  Descarga la app
                 </a>
               </div>
             </div>
