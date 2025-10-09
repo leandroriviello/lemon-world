@@ -78,6 +78,8 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
     if (!value) return t('errEnterAmount');
     const n = Number(value);
     if (Number.isNaN(n) || n <= 0) return t('errAmountInvalid');
+    // Enforce minimum amount of 0.001 WLD
+    if (n < 0.001) return t('errAmountInvalid');
     return "";
   };
 
