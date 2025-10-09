@@ -369,16 +369,29 @@ export const Pay = ({ hideHeader }: { hideHeader?: boolean }) => {
             {t('amountWLD')}
           </label>
           <input
-            type="number"
+            type="text"
+            inputMode="decimal"
             placeholder={t('placeholderAmount')}
             value={amount}
             onChange={(e) => {
-              setAmount(e.target.value);
+              let v = e.target.value || '';
+              v = v.replace(/,/g, '.');
+              // keep only digits and dot
+              v = v.replace(/[^0-9.]/g, '');
+              // allow only one dot and limit to 6 decimals
+              const first = v.indexOf('.');
+              if (first !== -1) {
+                const intPart = v.slice(0, first);
+                let fracPart = v.slice(first + 1).replace(/\./g, '');
+                if (fracPart.length > 6) fracPart = fracPart.slice(0, 6);
+                v = `${intPart}.${fracPart}`;
+              }
+              // normalize leading dot -> 0.
+              if (v.startsWith('.')) v = '0' + v;
+              setAmount(v);
               if (amountError) setAmountError("");
             }}
             disabled={disabled}
-            min="0"
-            step="0.01"
             className="focus-pulse w-full h-12 px-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FFD100] focus:border-[#FFD100] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
           />
           {amountError && (
